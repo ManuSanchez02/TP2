@@ -6,6 +6,8 @@
 #include <ctype.h>
 
 typedef struct{
+    bool jugando;
+    simulador_t* simulador;
 }Juego;
 
 
