@@ -1,0 +1,71 @@
+Funcionamiento general del Simulador:
+#####################################
+
+Al crearse el simulador con un hospital, todos los entrenadores del mismo se encuentran en la sala de espera. Al atender un entrenador, dicho entrenador pasa a ser un entrenador atendido y sus pokemon empiezan a estar en espera de ser atendidos. La dificultad inicial es la correspondiente al id 1 (Normal). Las dificultades 0 (Fácil) y 2 (Difícil) deben ser provistas por la implementación como estándar.
+
+El pokemon que debe ser atendido en un determinado momento es el pokemon de menor nivel de entre todos los pokemon en espera. Al finalizar la atencion de uno de los pokemon, este es contado como pokemon atendido e inmediatamente se considera al próximo pokemon de menor nivel para ser atendido. Una vez que se determina que un pokemon debe ser atendido, si se agregan mas pokemon en espera, por mas que haya un pokemon con menor nivel, se lo ignora hasta que se termine de atender al pokemon actual.
+
+Si no hay pokemon en espera y se atiende a un entrenador nuevo, el pokemon de menor nivel de dicho entrenador es quien queda a disposición de ser atendido.
+
+
+Eventos soportados:
+###################
+
+A continuación se detalla el funcionamiento de los eventos soportados por el simulador y la letra asociada a cada opción.
+
+ObtenerEstadisticas (E)
+===================
+
+- Dato: EstadisticasSimulacion*
+- Operación: Inicializa la estructura pasada por parámetro con los valores corerspondientes.
+- Error posible: Dato nulo
+
+AtenderProximoEntrenador (P)
+========================
+
+- Dato: No se usa
+- Operación: Si quedan entrenadores en la sala de espera lo pasa a estado de atendido y sus pokemon quedan en espera.
+- Error posible: No hay entrenadores en espera
+
+ObtenerInformacionPokemonEnTratamiento (I)
+======================================
+
+- Dato: InformacionPokemon*
+- Operación: Llena los datos de la estructura con el pokemon que está siendo o debe ser atendido.
+- Error posible: Puntero nulo, no hay pokemon para atender (pone en null los punteros de la estructura).
+
+
+AdivinarNivelPokemon (A)
+====================
+
+- Dato: Intento* con el campo nivel_adivinado inicializado al nivel que se propone
+- Operación: Verifica si el nivel pasado es el correcto del pokemon atendido (usando las funciones que corresponden según la dificultad activa) y llena la estructura con el resultado. El campo es_correcto es true si se acerta el nivel. El campo resultado_string contiene la salida de la función verificacion_a_string para esa dificultad.
+- Error posible: Puntero nulo. No hay pokemon siendo atendido.
+
+AgregarDificultad (N)
+=================
+
+- Dato: DatosDificultad* inicializada con los datos correspondientes a la nueva dificultad.
+- Operación: Agrega una nueva dificultad al simulador. El campo nombre indica el nombre de la dificultad para mostrarse por pantalla, calcular_puntaje devuelve la cantidad de puntos ganados por acertar dada la cantidad de intentos requeridos, verificar_nivel recibe el numero adivinado y el correcto y devuelve 0 en caso de acertar (y cualquier otro valor en otro caso) y verificacion_a_string recibe el numero resultado de la función verificar_nivel y lo transforma en un string que representa el resultado en forma de texto.
+- Error posible: Puntero o alguno de los campos nulos. Nombre de dificultad repetido.
+
+SeleccionarDificultad (D)
+=====================
+
+- Dato: int* con el id de la dificultad a seleccionar
+- Operación: Selecciona la dificultad especificada y pasa a ser la dificultad activa para los proximos intentos
+- Error posible: Dato nulo, id inexistente.
+
+ObtenerInformacionDificultad (O)
+============================
+
+- Dato: InformacionDificultad* inicializado con el id en el de la dificultad a obtener
+- Operación: Busca la dificultad con el id especificado y llena la estructura con la información de la dificultad (nombre y si está en uso o no). Si el id no existe, el nombre se inicializa en NULL y el id se cambia a -1.
+- Error posible: Puntero nulo.
+
+FinalizarSimulacion (Q)
+===================
+
+- Dato: No se usa
+- Operación: Marca la simulación como finalizada, no se podrán procesar mas eventos. Intentar simular mas eventos devuelve error.
+- Error posible: -
