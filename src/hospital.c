@@ -23,9 +23,9 @@ bool hospital_leer_archivo(hospital_t* hospital, const char* nombre_archivo){
         return false;
     }
     
-    hospital_t* hospital_estado_incial = hospital_crear();
-    if(!hospital_copiar(hospital_estado_incial, hospital)){
-        hospital_destruir(hospital_estado_incial);
+    hospital_t* hospital_estado_inicial = hospital_crear();
+    if(!hospital_copiar(hospital_estado_inicial, hospital)){
+        hospital_destruir(hospital_estado_inicial);
         fclose(entrenadores_y_pokemones);
         return false;
     }
@@ -34,7 +34,7 @@ bool hospital_leer_archivo(hospital_t* hospital, const char* nombre_archivo){
         if(!parsear_linea(hospital, elementos_linea)){
             fclose(entrenadores_y_pokemones);
             hospital_destruir(hospital);
-            hospital = hospital_estado_incial;
+            hospital = hospital_estado_inicial;
             return false;
         }
 
@@ -44,14 +44,14 @@ bool hospital_leer_archivo(hospital_t* hospital, const char* nombre_archivo){
         if(!linea || !elementos_linea){
             fclose(entrenadores_y_pokemones);
             hospital_destruir(hospital);
-            hospital = hospital_estado_incial;
+            hospital = hospital_estado_inicial;
             return false;
         }
     }
     liberar_elementos_split(elementos_linea);
     free(linea);
     free(elementos_linea);
-    hospital_destruir(hospital_estado_incial);
+    hospital_destruir(hospital_estado_inicial);
 
     fclose(entrenadores_y_pokemones);
     return true;

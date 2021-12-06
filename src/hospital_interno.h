@@ -7,10 +7,10 @@
 #include "split.h"
 
 
-typedef struct _entrenador_pkm_t{
+struct _entrenador_t{
     char* nombre;
     int id;
-} entrenador_t;
+};
 
 struct _hospital_pkm_t{
     size_t cantidad_actual_pokemon;
