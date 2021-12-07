@@ -5,6 +5,7 @@
 #include <string.h>
 #include "hospital.h"
 #include "split.h"
+#include "lista.h"
 
 
 struct _entrenador_t{
@@ -15,7 +16,7 @@ struct _entrenador_t{
 struct _hospital_pkm_t{
     size_t cantidad_actual_pokemon;
     size_t cantidad_maxima_pokemon;
-    pokemon_t* vector_pokemon;
+    lista_t* vector_pokemon; // ? Cambiado a lista
     size_t cantidad_actual_entrenadores;
     size_t cantidad_maxima_entrenadores;
     entrenador_t* vector_entrenadores;
@@ -39,7 +40,7 @@ char* leer_linea(FILE* archivo);
  * Pre: el tope del vector debe estar inicializado y estar acorde al vector.
  * Post: si el vector no esta inicializado, no pasa nada. Si lo esta, lo ordena alfabeticamente 
  */
-void ordenar_alfabeticamente(pokemon_t* vector, size_t tope);
+bool ordenar_alfabeticamente(lista_t* lista_pokemon, size_t tope);
 
 /*
  * Pre: la cantidad_elementos debe estar inicializado y estar acorde al vector.
@@ -65,7 +66,7 @@ bool inicializar_entrenador(entrenador_t* entrenador, int id, char* nombre);
  * Pre: nombre debe ser distinto de NULL
  * Post: Devuelve TRUE si se pudo inicializar al pokemon y FALSE en caso contrario
  */
-bool inicializar_pokemon(pokemon_t* pokemon, char* nombre, size_t nivel);
+pokemon_t* crear_pokemon(char* nombre, size_t nivel);  //! Corregir
 
 /*
  * Pre: -
@@ -81,5 +82,11 @@ bool parsear_linea(hospital_t* hospital, char** elementos_linea);
  * Post: Devuelve true si el proceso fue un exito y false en caso contrario
  */
 bool hospital_copiar(hospital_t* hospital_copia, hospital_t* hospital_original);
+
+/*
+ * Pre: _pokemon debe ser un puntero a un pokemon_t
+ * Post: Libera la memoria asignada a pokemon
+ */
+bool destructor_pokemon(void* _pokemon, void* aux);
 
 #endif // HOSPITAL_INTERNO_H_

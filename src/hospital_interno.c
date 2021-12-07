@@ -37,19 +37,23 @@ char* leer_linea(FILE* archivo){
     return linea;
 }
 
-void ordenar_alfabeticamente(pokemon_t* vector, size_t tope){
-    if(!vector)
-        return;
-        
+bool ordenar_alfabeticamente(lista_t* pokemones, size_t tope){
+    if(!pokemones)
+        return false;
+    
+    bool error = false;
+
     for(size_t i = 0; i < tope; i++){
         for(size_t j = 0; j < tope-i-1; j++){
-            if(strcmp(vector[j].nombre, vector[j+1].nombre) > 0){
-                pokemon_t aux = vector[j];
-                vector[j] = vector[j+1];
-                vector[j+1] = aux;
+            if(strcmp((*(pokemon_t*)lista_elemento_en_posicion(pokemones, j)).nombre, (*(pokemon_t*)lista_elemento_en_posicion(pokemones, j+1)).nombre) > 0){
+                pokemon_t* aux = lista_quitar_de_posicion(pokemones, j);
+                if(!lista_insertar_en_posicion(pokemones, aux, j+1))
+                    error = true;
             }
         }
     }
+
+    return !error;
 }
 
 entrenador_t* agregar_entrenador(entrenador_t* vector, entrenador_t elemento, size_t* cantidad_elementos, size_t* cantidad_maxima){   
@@ -111,9 +115,13 @@ bool inicializar_entrenador(entrenador_t* entrenador, int id, char* nombre){
     return true;
 }
 
-bool inicializar_pokemon(pokemon_t* pokemon, char* nombre, size_t nivel){
+pokemon_t* crear_pokemon(char* nombre, size_t nivel){
     if(!nombre)
-        return false;
+        return NULL;
+
+    pokemon_t* pokemon = malloc(sizeof(pokemon_t));
+    if(!pokemon)
+        return NULL;
 
     size_t tamanio = sizeof(char)*(strlen(nombre)+1);
     pokemon->nivel = nivel;
@@ -121,7 +129,7 @@ bool inicializar_pokemon(pokemon_t* pokemon, char* nombre, size_t nivel){
     if(!pokemon->nombre)
         return false;
     strncpy(pokemon->nombre, nombre, tamanio);
-    return true;
+    return pokemon;
 }
 
 bool parsear_linea(hospital_t* hospital, char** elementos_linea){
@@ -130,16 +138,13 @@ bool parsear_linea(hospital_t* hospital, char** elementos_linea){
 
     size_t i = 2;
         while(elementos_linea[i] != NULL){
-            pokemon_t pokemon;
-            bool pokemon_inicializado = inicializar_pokemon(&pokemon, elementos_linea[i], (size_t)atoi(elementos_linea[i+1]));
-            if(!pokemon_inicializado)
+            pokemon_t* pokemon = crear_pokemon(elementos_linea[i], (size_t)atoi(elementos_linea[i+1]));
+            if(!pokemon)
                 return false;
 
-            pokemon_t* vector_pokemon_aux = agregar_pokemon(hospital->vector_pokemon, pokemon, &(hospital->cantidad_actual_pokemon), &(hospital->cantidad_maxima_pokemon));
-            if(!vector_pokemon_aux)
+            if(!lista_insertar(hospital->vector_pokemon, pokemon))
                 return false;
 
-            hospital->vector_pokemon = vector_pokemon_aux;
             i += POSICION_PRIMER_POKEMON;
         }
 
@@ -164,12 +169,10 @@ bool hospital_copiar(hospital_t* hospital_copia, hospital_t* hospital_original){
     if(!hospital_copia || !hospital_original)
         return false;
 
-    for(int i = 0; i < hospital_copia->cantidad_actual_pokemon; i++){
-        pokemon_t* vector_pokemon_aux = agregar_pokemon(hospital_copia->vector_pokemon, hospital_original->vector_pokemon[i], &(hospital_copia->cantidad_actual_pokemon), &(hospital_copia->cantidad_maxima_pokemon));
-        if(!vector_pokemon_aux)
+    for(size_t i = 0; i < hospital_copia->cantidad_actual_pokemon; i++){
+        if(!lista_insertar(hospital_copia->vector_pokemon, lista_elemento_en_posicion(hospital_original->vector_pokemon, i)))
             return false;
         i++;
-        hospital_copia->vector_pokemon = vector_pokemon_aux;
     }
 
     for(int i = 0; i < hospital_copia->cantidad_maxima_entrenadores; i++){
@@ -180,5 +183,16 @@ bool hospital_copiar(hospital_t* hospital_copia, hospital_t* hospital_original){
         hospital_copia->vector_entrenadores = vector_entrenadores_aux;
     }
 
+    return true;
+}
+
+
+bool destructor_pokemon(void* _pokemon, void* aux){
+    if(!_pokemon)
+        return true;
+
+    pokemon_t* pokemon = _pokemon;
+    free(pokemon->nombre);
+    free(pokemon);
     return true;
 }

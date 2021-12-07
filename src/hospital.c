@@ -6,7 +6,16 @@ const char SEPARADOR = ';';
 
 
 hospital_t* hospital_crear(){
-    return calloc(1, sizeof(hospital_t));
+    hospital_t* hospital = calloc(1, sizeof(hospital_t));
+    if(!hospital)
+        return NULL;
+
+    hospital->vector_pokemon = lista_crear();
+    if(!hospital->vector_pokemon){
+        hospital_destruir(hospital);
+        return NULL;
+    }
+    return hospital;
 }
 
 bool hospital_leer_archivo(hospital_t* hospital, const char* nombre_archivo){
@@ -58,7 +67,7 @@ bool hospital_leer_archivo(hospital_t* hospital, const char* nombre_archivo){
 }
 
 size_t hospital_cantidad_pokemon(hospital_t* hospital){
-    return (hospital) ? hospital->cantidad_actual_pokemon : 0;
+    return (hospital) ? lista_tamanio(hospital->vector_pokemon) : 0;
 }
 
 size_t hospital_cantidad_entrenadores(hospital_t* hospital){
@@ -69,12 +78,13 @@ size_t hospital_a_cada_pokemon(hospital_t* hospital, bool (*funcion)(pokemon_t* 
     if(!hospital || !funcion)
         return 0;
 
-    ordenar_alfabeticamente(hospital->vector_pokemon, hospital->cantidad_actual_pokemon);
+    if(!ordenar_alfabeticamente(hospital->vector_pokemon, hospital_cantidad_pokemon(hospital)))
+        return 0;
     bool retorno_de_funcion = true;
 
     size_t contador = 0;
-    while(contador < hospital->cantidad_actual_pokemon && retorno_de_funcion){
-        retorno_de_funcion = funcion(&(hospital->vector_pokemon[contador]));
+    while(contador < hospital_cantidad_pokemon(hospital) && retorno_de_funcion){
+        retorno_de_funcion = funcion(lista_elemento_en_posicion(hospital->vector_pokemon, contador));
         contador++;
     }
 
@@ -89,12 +99,10 @@ void hospital_destruir(hospital_t* hospital){
         free(hospital->vector_entrenadores[i].nombre);
     }
 
-    for(int i = 0; i < hospital_cantidad_pokemon(hospital); i++){
-        free(hospital->vector_pokemon[i].nombre);
-    }
+    lista_con_cada_elemento(hospital->vector_pokemon, destructor_pokemon, NULL);
 
     free(hospital->vector_entrenadores);
-    free(hospital->vector_pokemon);
+    lista_destruir(hospital->vector_pokemon);
     free(hospital);
 }
 
