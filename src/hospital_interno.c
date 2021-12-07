@@ -102,20 +102,24 @@ pokemon_t* agregar_pokemon(pokemon_t* vector, pokemon_t elemento, size_t* cantid
     return vector;
 }
 
-bool inicializar_entrenador(entrenador_t* entrenador, int id, char* nombre){
-    if(!nombre)
-        return false;
+entrenador_t* crear_entrenador(char* nombre, int id){
+        if(!nombre)
+        return NULL;
+
+    entrenador_t* entrenador = malloc(sizeof(entrenador_t));
+    if(!entrenador)
+        return NULL;
 
     size_t tamanio = sizeof(char)*(strlen(nombre)+1);
     entrenador->id = id;
     entrenador->nombre = malloc(tamanio);
     if(!entrenador->nombre)
-        return false;
+        return NULL;
     strncpy(entrenador->nombre, nombre, tamanio);
-    return true;
+    return entrenador;
 }
 
-pokemon_t* crear_pokemon(char* nombre, size_t nivel){
+pokemon_t* crear_pokemon(char* nombre, size_t nivel, int id_entrenador){
     if(!nombre)
         return NULL;
 
@@ -125,9 +129,10 @@ pokemon_t* crear_pokemon(char* nombre, size_t nivel){
 
     size_t tamanio = sizeof(char)*(strlen(nombre)+1);
     pokemon->nivel = nivel;
+    pokemon->id_entrenador = id_entrenador;
     pokemon->nombre = malloc(tamanio);
     if(!pokemon->nombre)
-        return false;
+        return NULL;
     strncpy(pokemon->nombre, nombre, tamanio);
     return pokemon;
 }
@@ -137,50 +142,47 @@ bool parsear_linea(hospital_t* hospital, char** elementos_linea){
         return false;
 
     size_t i = 2;
-        while(elementos_linea[i] != NULL){
-            pokemon_t* pokemon = crear_pokemon(elementos_linea[i], (size_t)atoi(elementos_linea[i+1]));
-            if(!pokemon)
-                return false;
-
-            if(!lista_insertar(hospital->vector_pokemon, pokemon))
-                return false;
-
-            i += POSICION_PRIMER_POKEMON;
-        }
-
-        entrenador_t entrenador;
-        bool entrenador_inicializado = inicializar_entrenador(&entrenador, atoi(elementos_linea[POSICION_ID_ENTRENADOR]), elementos_linea[POSICION_NOMBRE_ENTRENADOR]);
-        if(!entrenador_inicializado)
+    int id_entrenador = atoi(elementos_linea[POSICION_ID_ENTRENADOR]);
+    while(elementos_linea[i] != NULL){
+        pokemon_t* pokemon = crear_pokemon(elementos_linea[i], (size_t)atoi(elementos_linea[i+1]), id_entrenador);
+        if(!pokemon)
             return false;
 
-        entrenador_t* vector_entrenadores_aux = agregar_entrenador(hospital->vector_entrenadores, entrenador, &(hospital->cantidad_actual_entrenadores), &(hospital->cantidad_maxima_entrenadores));
-        if(!vector_entrenadores_aux)
+        if(!lista_insertar(hospital->vector_pokemon, pokemon))
             return false;
 
-        hospital->vector_entrenadores = vector_entrenadores_aux;
-        
+        i += POSICION_PRIMER_POKEMON;
+    }
+
+    entrenador_t* entrenador = crear_entrenador(elementos_linea[POSICION_NOMBRE_ENTRENADOR], id_entrenador);
+    if(!entrenador)
+        return false;
+
+    if(!lista_insertar(hospital->vector_entrenadores, entrenador))
+        return false;
     
-        liberar_elementos_split(elementos_linea);
-        free(elementos_linea);
-        return true;
+
+    liberar_elementos_split(elementos_linea);
+    free(elementos_linea);
+    return true;
 }
 
 bool hospital_copiar(hospital_t* hospital_copia, hospital_t* hospital_original){
     if(!hospital_copia || !hospital_original)
         return false;
 
-    for(size_t i = 0; i < hospital_copia->cantidad_actual_pokemon; i++){
-        if(!lista_insertar(hospital_copia->vector_pokemon, lista_elemento_en_posicion(hospital_original->vector_pokemon, i)))
+    for(size_t i = 0; i < lista_tamanio(hospital_original->vector_pokemon); i++){
+        pokemon_t* pokemon_original = lista_elemento_en_posicion(hospital_original->vector_pokemon, i);
+        pokemon_t* pokemon_copia = crear_pokemon(pokemon_original->nombre, pokemon_original->nivel, pokemon_original->id_entrenador);
+        if(!lista_insertar(hospital_copia->vector_pokemon, pokemon_copia))
             return false;
-        i++;
     }
 
-    for(int i = 0; i < hospital_copia->cantidad_maxima_entrenadores; i++){
-        entrenador_t* vector_entrenadores_aux = agregar_entrenador(hospital_copia->vector_entrenadores, hospital_original->vector_entrenadores[i], &(hospital_copia->cantidad_maxima_entrenadores), &(hospital_copia->cantidad_maxima_pokemon));
-        if(!vector_entrenadores_aux)
+    for(size_t i = 0; i < lista_tamanio(hospital_original->vector_entrenadores); i++){
+        entrenador_t* entrenador_original = lista_elemento_en_posicion(hospital_original->vector_entrenadores, i);
+        entrenador_t* entrenador_copia = crear_entrenador(entrenador_original->nombre, entrenador_original->id);
+        if(!lista_insertar(hospital_copia->vector_entrenadores, entrenador_copia))
             return false;
-        i++;
-        hospital_copia->vector_entrenadores = vector_entrenadores_aux;
     }
 
     return true;
@@ -194,5 +196,15 @@ bool destructor_pokemon(void* _pokemon, void* aux){
     pokemon_t* pokemon = _pokemon;
     free(pokemon->nombre);
     free(pokemon);
+    return true;
+}
+
+bool destructor_entrenador(void* _entrenador, void* aux){
+    if(!_entrenador)
+        return true;
+
+    entrenador_t* entrenador = _entrenador;
+    free(entrenador->nombre);
+    free(entrenador);
     return true;
 }

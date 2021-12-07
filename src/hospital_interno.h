@@ -14,12 +14,8 @@ struct _entrenador_t{
 };
 
 struct _hospital_pkm_t{
-    size_t cantidad_actual_pokemon;
-    size_t cantidad_maxima_pokemon;
     lista_t* vector_pokemon; // ? Cambiado a lista
-    size_t cantidad_actual_entrenadores;
-    size_t cantidad_maxima_entrenadores;
-    entrenador_t* vector_entrenadores;
+    lista_t* vector_entrenadores;
 };
 
 struct _pkm_t{
@@ -58,15 +54,15 @@ pokemon_t* agregar_pokemon(pokemon_t* vector, pokemon_t elemento, size_t* cantid
 
 /*
  * Pre: nombre debe ser distinto de NULL
- * Post: Devuelve TRUE si se pudo inicializar al entrenador y FALSE en caso contrario
+ * Post: Devuelve un puntero a entrenador si se pudo crear al entrenador y NULL en caso contrario
  */
-bool inicializar_entrenador(entrenador_t* entrenador, int id, char* nombre);
+entrenador_t* crear_entrenador(char* nombre, int id);
 
 /*
  * Pre: nombre debe ser distinto de NULL
- * Post: Devuelve TRUE si se pudo inicializar al pokemon y FALSE en caso contrario
+ * Post: Devuelve un puntero a pokemon si se pudo crear al pokemon y NULL en caso contrario
  */
-pokemon_t* crear_pokemon(char* nombre, size_t nivel);  //! Corregir
+pokemon_t* crear_pokemon(char* nombre, size_t nivel, int id_entrenador);  //! Corregir
 
 /*
  * Pre: -
@@ -88,5 +84,12 @@ bool hospital_copiar(hospital_t* hospital_copia, hospital_t* hospital_original);
  * Post: Libera la memoria asignada a pokemon
  */
 bool destructor_pokemon(void* _pokemon, void* aux);
+
+/*
+ * Pre: _entrenador debe ser un puntero a un entrenador_t
+ * Post: Libera la memoria asignada a entrenador
+ */
+bool destructor_entrenador(void* _entrenador, void* aux);
+
 
 #endif // HOSPITAL_INTERNO_H_
