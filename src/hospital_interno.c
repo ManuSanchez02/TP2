@@ -174,14 +174,14 @@ bool hospital_copiar(hospital_t* hospital_copia, hospital_t* hospital_original){
     for(size_t i = 0; i < lista_tamanio(hospital_original->vector_pokemon); i++){
         pokemon_t* pokemon_original = lista_elemento_en_posicion(hospital_original->vector_pokemon, i);
         pokemon_t* pokemon_copia = crear_pokemon(pokemon_original->nombre, pokemon_original->nivel, pokemon_original->id_entrenador);
-        if(!lista_insertar(hospital_copia->vector_pokemon, pokemon_copia))
+        if(!pokemon_copia || !lista_insertar(hospital_copia->vector_pokemon, pokemon_copia))
             return false;
     }
 
     for(size_t i = 0; i < lista_tamanio(hospital_original->vector_entrenadores); i++){
         entrenador_t* entrenador_original = lista_elemento_en_posicion(hospital_original->vector_entrenadores, i);
         entrenador_t* entrenador_copia = crear_entrenador(entrenador_original->nombre, entrenador_original->id);
-        if(!lista_insertar(hospital_copia->vector_entrenadores, entrenador_copia))
+        if(!entrenador_copia || !lista_insertar(hospital_copia->vector_entrenadores, entrenador_copia))
             return false;
     }
 
