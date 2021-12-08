@@ -6,7 +6,7 @@ const char SEPARADOR = ';';
 
 
 hospital_t* hospital_crear(){
-    hospital_t* hospital = calloc(1, sizeof(hospital_t));
+    hospital_t* hospital = malloc(sizeof(hospital_t));
     if(!hospital)
         return NULL;
 
