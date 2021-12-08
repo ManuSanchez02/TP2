@@ -6,11 +6,13 @@
 #include "hospital.h"
 #include "split.h"
 #include "lista.h"
+#include "heap.h"
 
 
 struct _entrenador_t{
     char* nombre;
     int id;
+    heap_t* heap_pokemon;
 };
 
 struct _hospital_pkm_t{

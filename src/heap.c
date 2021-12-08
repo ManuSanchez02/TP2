@@ -72,7 +72,7 @@ bool heap_insertar(heap_t* heap, void* elemento){
     }
     
     heap->vector[heap->tope] = elemento;
-    sift_up(heap, heap->tope);
+    sift_up(heap, (int)heap->tope);
     heap->tope += 1;
     return true;
 }
@@ -109,7 +109,7 @@ int heap_tamanio(heap_t* heap){
     if(!heap)
         return -1;
 
-    return heap->tope;
+    return (int)heap->tope;
 }
 
 void* heap_extraer_raiz(heap_t* heap){

@@ -8,7 +8,7 @@ typedef struct _heap_t heap_t;
 #include <stdio.h>
 #include "heap.h"
 
-heap_t* heap_crear();
+heap_t* heap_crear(size_t tamanio_inicial, int (*comparador)(void*, void*));
 
 bool heap_insertar(heap_t* heap, void* elemento);
 

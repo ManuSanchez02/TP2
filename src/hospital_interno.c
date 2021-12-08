@@ -2,10 +2,22 @@
 
 
 const size_t MULTIPLICADOR_ALLOC = 10;
+const size_t TAMANIO_INICIAL_HEAP = 6;
 
 #define POSICION_ID_ENTRENADOR 0
 #define POSICION_NOMBRE_ENTRENADOR 1
 #define POSICION_PRIMER_POKEMON 2
+
+int comparador_pokemon(void* _poke1, void* _poke2){
+    if(!_poke1 || !_poke2)
+        return 0;
+
+    pokemon_t* poke1 = _poke1; 
+    pokemon_t* poke2 = _poke2; 
+
+    return (int)(poke1->nivel) - (int)(poke2->nivel);
+}
+
 
 char* leer_linea(FILE* archivo){
     size_t longitud = 0;
