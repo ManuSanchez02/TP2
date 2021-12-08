@@ -8,6 +8,9 @@ struct _heap_t{
 };
 
 void swap(void** vector, int pos1, int pos2){
+    if(!vector)
+        return;
+
     void* aux = vector[pos1];
     vector[pos1] = vector[pos2];
     vector[pos2] = aux;
@@ -75,7 +78,7 @@ bool heap_insertar(heap_t* heap, void* elemento){
 }
 
 void sift_down(heap_t* heap, int pos_actual){
-    if(pos_actual >= heap->tope || pos_actual*2+1 >= heap->tope)
+    if(!heap || pos_actual >= heap->tope || pos_actual*2+1 >= heap->tope)
         return;
     
     
@@ -96,7 +99,17 @@ void sift_down(heap_t* heap, int pos_actual){
 }
 
 bool heap_vacio(heap_t* heap){
+    if(!heap)
+        return false;
+
     return heap->tope == 0;
+}
+
+int heap_tamanio(heap_t* heap){
+    if(!heap)
+        return -1;
+
+    return heap->tope;
 }
 
 void* heap_extraer_raiz(heap_t* heap){
