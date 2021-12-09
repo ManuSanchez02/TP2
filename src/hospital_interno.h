@@ -94,4 +94,6 @@ bool destructor_pokemon(void* _pokemon, void* aux);
 bool destructor_entrenador(void* _entrenador, void* aux);
 
 
+void hospital_destruir_estructuras(hospital_t* hospital);
+
 #endif // HOSPITAL_INTERNO_H_

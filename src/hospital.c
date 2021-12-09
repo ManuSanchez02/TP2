@@ -61,7 +61,7 @@ bool hospital_leer_archivo(hospital_t* hospital, const char* nombre_archivo){
     liberar_elementos_split(elementos_linea);
     free(linea);
     free(elementos_linea);
-    hospital_destruir(hospital_estado_inicial);
+    hospital_destruir_estructuras(hospital_estado_inicial);
 
     fclose(entrenadores_y_pokemones);
     return true;
@@ -99,9 +99,7 @@ void hospital_destruir(hospital_t* hospital){
     lista_con_cada_elemento(hospital->vector_entrenadores, destructor_entrenador, NULL);
     lista_con_cada_elemento(hospital->vector_pokemon, destructor_pokemon, NULL);
 
-    lista_destruir(hospital->vector_entrenadores);
-    lista_destruir(hospital->vector_pokemon); 
-    free(hospital);
+    hospital_destruir_estructuras(hospital);
 }
 
 size_t pokemon_nivel(pokemon_t* pokemon){
