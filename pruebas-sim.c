@@ -28,5 +28,7 @@ int main(){
     dadoUnHospital_puedoCrearYDestruirUnSimulador();
     dadoUnHospitalNULL_noPuedoCrearUnSimulador();
 
+
+
     return pa2m_mostrar_reporte();
 }

@@ -12,12 +12,11 @@
 struct _entrenador_t{
     char* nombre;
     int id;
-    heap_t* heap_pokemon;
 };
 
 struct _hospital_pkm_t{
-    lista_t* vector_pokemon; // ? Cambiado a lista
-    lista_t* vector_entrenadores;
+    lista_t* lista_pokemon; // ? Cambiado a lista
+    lista_t* lista_entrenadores;
 };
 
 struct _pkm_t{

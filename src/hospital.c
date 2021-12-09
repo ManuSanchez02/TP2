@@ -10,9 +10,9 @@ hospital_t* hospital_crear(){
     if(!hospital)
         return NULL;
 
-    hospital->vector_pokemon = lista_crear();
-    hospital->vector_entrenadores = lista_crear();
-    if(!hospital->vector_pokemon || !hospital->vector_entrenadores){
+    hospital->lista_pokemon = lista_crear();
+    hospital->lista_entrenadores = lista_crear();
+    if(!hospital->lista_pokemon || !hospital->lista_entrenadores){
         hospital_destruir(hospital);
         return NULL;
     }
@@ -68,24 +68,24 @@ bool hospital_leer_archivo(hospital_t* hospital, const char* nombre_archivo){
 }
 
 size_t hospital_cantidad_pokemon(hospital_t* hospital){
-    return (hospital) ? lista_tamanio(hospital->vector_pokemon) : 0;
+    return (hospital) ? lista_tamanio(hospital->lista_pokemon) : 0;
 }
 
 size_t hospital_cantidad_entrenadores(hospital_t* hospital){
-    return (hospital) ? lista_tamanio(hospital->vector_entrenadores) : 0;
+    return (hospital) ? lista_tamanio(hospital->lista_entrenadores) : 0;
 }
 
 size_t hospital_a_cada_pokemon(hospital_t* hospital, bool (*funcion)(pokemon_t* p)){
     if(!hospital || !funcion)
         return 0;
 
-    if(!ordenar_alfabeticamente(hospital->vector_pokemon, hospital_cantidad_pokemon(hospital)))
+    if(!ordenar_alfabeticamente(hospital->lista_pokemon, hospital_cantidad_pokemon(hospital)))
         return 0;
     bool retorno_de_funcion = true;
 
     size_t contador = 0;
     while(contador < hospital_cantidad_pokemon(hospital) && retorno_de_funcion){
-        retorno_de_funcion = funcion(lista_elemento_en_posicion(hospital->vector_pokemon, contador));
+        retorno_de_funcion = funcion(lista_elemento_en_posicion(hospital->lista_pokemon, contador));
         contador++;
     }
 
@@ -96,8 +96,8 @@ void hospital_destruir(hospital_t* hospital){
     if(!hospital)
         return;
     
-    lista_con_cada_elemento(hospital->vector_entrenadores, destructor_entrenador, NULL);
-    lista_con_cada_elemento(hospital->vector_pokemon, destructor_pokemon, NULL);
+    lista_con_cada_elemento(hospital->lista_entrenadores, destructor_entrenador, NULL);
+    lista_con_cada_elemento(hospital->lista_pokemon, destructor_pokemon, NULL);
 
     hospital_destruir_estructuras(hospital);
 }
