@@ -1,22 +1,10 @@
 #include "hospital_interno.h"
 
-
 const size_t MULTIPLICADOR_ALLOC = 10;
-const size_t TAMANIO_INICIAL_HEAP = 6;
 
 #define POSICION_ID_ENTRENADOR 0
 #define POSICION_NOMBRE_ENTRENADOR 1
 #define POSICION_PRIMER_POKEMON 2
-
-int comparador_pokemon(void* _poke1, void* _poke2){
-    if(!_poke1 || !_poke2)
-        return 0;
-
-    pokemon_t* poke1 = _poke1; 
-    pokemon_t* poke2 = _poke2; 
-
-    return (int)(poke1->nivel) - (int)(poke2->nivel);
-}
 
 
 char* leer_linea(FILE* archivo){
@@ -173,7 +161,7 @@ bool parsear_linea(hospital_t* hospital, char** elementos_linea){
         i += POSICION_PRIMER_POKEMON;
     }
 
-    if(!lista_insertar(hospital->lista_entrenadores, entrenador))
+    if(!cola_encolar(hospital->lista_entrenadores, entrenador))
         return false;
     
 
@@ -192,9 +180,9 @@ bool hospital_copiar(hospital_t* hospital_copia, hospital_t* hospital_original){
             return false;
     }
 
-    for(size_t i = 0; i < lista_tamanio(hospital_original->lista_entrenadores); i++){
-        entrenador_t* entrenador = lista_elemento_en_posicion(hospital_original->lista_entrenadores, i);
-        if(!lista_insertar(hospital_copia->lista_entrenadores, entrenador))
+    for(size_t i = 0; i < cola_tamanio(hospital_original->lista_entrenadores); i++){
+        entrenador_t* entrenador = cola_desencolar(hospital_original->lista_entrenadores); //! Explicar xq desencolo y encolo
+        if(!cola_encolar(hospital_original->lista_entrenadores, entrenador) || !cola_encolar(hospital_copia->lista_entrenadores, entrenador))
             return false;
     }
 
@@ -212,21 +200,19 @@ bool destructor_pokemon(void* _pokemon, void* aux){
     return true;
 }
 
-bool destructor_entrenador(void* _entrenador, void* aux){
-    if(!_entrenador)
-        return true;
+void destructor_entrenador(entrenador_t* entrenador){
+    if(!entrenador)
+        return;
 
-    entrenador_t* entrenador = _entrenador;
     free(entrenador->nombre);
     free(entrenador);
-    return true;
 }
 
 void hospital_destruir_estructuras(hospital_t* hospital){
     if(!hospital)
         return;
     
-    lista_destruir(hospital->lista_entrenadores);
+    cola_destruir(hospital->lista_entrenadores);
     lista_destruir(hospital->lista_pokemon); 
     free(hospital);
 }

@@ -11,7 +11,7 @@ hospital_t* hospital_crear(){
         return NULL;
 
     hospital->lista_pokemon = lista_crear();
-    hospital->lista_entrenadores = lista_crear();
+    hospital->lista_entrenadores = cola_crear();
     if(!hospital->lista_pokemon || !hospital->lista_entrenadores){
         hospital_destruir(hospital);
         return NULL;
@@ -72,7 +72,7 @@ size_t hospital_cantidad_pokemon(hospital_t* hospital){
 }
 
 size_t hospital_cantidad_entrenadores(hospital_t* hospital){
-    return (hospital) ? lista_tamanio(hospital->lista_entrenadores) : 0;
+    return (hospital) ? cola_tamanio(hospital->lista_entrenadores) : 0;
 }
 
 size_t hospital_a_cada_pokemon(hospital_t* hospital, bool (*funcion)(pokemon_t* p)){
@@ -96,7 +96,9 @@ void hospital_destruir(hospital_t* hospital){
     if(!hospital)
         return;
     
-    lista_con_cada_elemento(hospital->lista_entrenadores, destructor_entrenador, NULL);
+    while(cola_tamanio(hospital->lista_entrenadores) > 0)
+        destructor_entrenador(cola_desencolar(hospital->lista_entrenadores));
+
     lista_con_cada_elemento(hospital->lista_pokemon, destructor_pokemon, NULL);
 
     hospital_destruir_estructuras(hospital);
