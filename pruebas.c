@@ -1,7 +1,7 @@
 #include "pa2mm.h"
 #include "src/hospital.h"
-
-#include "string.h"
+#include "src/hospital_interno.h"
+#include <string.h>
 #include <stdbool.h>
 
 bool ignorar_pokemon(pokemon_t* p){
@@ -131,6 +131,20 @@ void dadosVariosArchivos_puedoAgregarlosTodosAlMismoHospital(){
     hospital_destruir(h);
 }
 
+void dadoUnPokemon_puedoObtenerSuInformacion(){
+    entrenador_t* entrenador = crear_entrenador("Manuel", 1);
+    pokemon_t* pokemon = crear_pokemon("Charmander", 25, entrenador);
+
+    pa2m_afirmar((pokemon_entrenador(pokemon) == entrenador), "Puedo obtener el entrenador de un pokemon");
+    pa2m_afirmar((strcmp(pokemon_nombre(pokemon), "Charmander") == 0), "Puedo obtener el nombre de un pokemon");
+    pa2m_afirmar((pokemon_nivel(pokemon) == 25), "Puedo obtener el nivel de un pokemon");
+
+    destructor_entrenador(entrenador);
+    destructor_pokemon(pokemon, NULL);
+}
+
+
+
 int main(){
 
     pa2m_nuevo_grupo("Pruebas de  creación y destrucción");
@@ -150,6 +164,10 @@ int main(){
 
     pa2m_nuevo_grupo("Pruebas con mas de un archivo");
     dadosVariosArchivos_puedoAgregarlosTodosAlMismoHospital();
+
+    pa2m_nuevo_grupo("Pruebas de obtener pokemon");
+    dadoUnPokemon_puedoObtenerSuInformacion();
+
 
     return pa2m_mostrar_reporte();
 }

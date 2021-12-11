@@ -121,8 +121,8 @@ entrenador_t* crear_entrenador(char* nombre, int id){
     return entrenador;
 }
 
-pokemon_t* crear_pokemon(char* nombre, size_t nivel, int id_entrenador){
-    if(!nombre)
+pokemon_t* crear_pokemon(char* nombre, size_t nivel, entrenador_t* entrenador){
+    if(!nombre || !entrenador)
         return NULL;
 
     pokemon_t* pokemon = malloc(sizeof(pokemon_t));
@@ -131,7 +131,7 @@ pokemon_t* crear_pokemon(char* nombre, size_t nivel, int id_entrenador){
 
     size_t tamanio = sizeof(char)*(strlen(nombre)+1);
     pokemon->nivel = nivel;
-    pokemon->id_entrenador = id_entrenador;
+    pokemon->entrenador = entrenador;
     pokemon->nombre = malloc(tamanio);
     if(!pokemon->nombre)
         return NULL;
@@ -151,7 +151,7 @@ bool parsear_linea(hospital_t* hospital, char** elementos_linea){
         return false;
 
     while(elementos_linea[i] != NULL){
-        pokemon_t* pokemon = crear_pokemon(elementos_linea[i], (size_t)atoi(elementos_linea[i+1]), id_entrenador);
+        pokemon_t* pokemon = crear_pokemon(elementos_linea[i], (size_t)atoi(elementos_linea[i+1]), entrenador);
         if(!pokemon)
             return false;
 

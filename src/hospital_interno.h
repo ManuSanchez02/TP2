@@ -15,14 +15,14 @@ struct _entrenador_t{
 };
 
 struct _hospital_pkm_t{
-    lista_t* lista_pokemon; // ? Cambiado a lista
-    cola_t* lista_entrenadores;
+    lista_t* lista_pokemon; // ? Cambiado a lista --> Quizas abb?
+    cola_t* lista_entrenadores;  // ? Cambiado a cola
 };
 
 struct _pkm_t{
     char* nombre;
     size_t nivel;
-    int id_entrenador;
+    entrenador_t* entrenador;
 };
 
 
@@ -60,10 +60,10 @@ pokemon_t* agregar_pokemon(pokemon_t* vector, pokemon_t elemento, size_t* cantid
 entrenador_t* crear_entrenador(char* nombre, int id);
 
 /*
- * Pre: nombre debe ser distinto de NULL
+ * Pre: nombre y entrenador debe ser distinto de NULL
  * Post: Devuelve un puntero a pokemon si se pudo crear al pokemon y NULL en caso contrario
  */
-pokemon_t* crear_pokemon(char* nombre, size_t nivel, int id_entrenador);  //! Corregir
+pokemon_t* crear_pokemon(char* nombre, size_t nivel, entrenador_t* entrenador);  //! Corregir
 
 /*
  * Pre: -

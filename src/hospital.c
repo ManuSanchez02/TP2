@@ -75,21 +75,24 @@ size_t hospital_cantidad_entrenadores(hospital_t* hospital){
     return (hospital) ? cola_tamanio(hospital->lista_entrenadores) : 0;
 }
 
+bool hospital_a_cada_pokemon_aux(void* _pokemon, void* _funcion){
+    if(!_pokemon || !_funcion)
+        return false;
+
+    bool (*funcion)(pokemon_t*) = _funcion;
+    pokemon_t* pokemon = _pokemon;
+
+    return funcion(pokemon);
+}
+
 size_t hospital_a_cada_pokemon(hospital_t* hospital, bool (*funcion)(pokemon_t* p)){
     if(!hospital || !funcion)
         return 0;
 
     if(!ordenar_alfabeticamente(hospital->lista_pokemon, hospital_cantidad_pokemon(hospital)))
         return 0;
-    bool retorno_de_funcion = true;
 
-    size_t contador = 0;
-    while(contador < hospital_cantidad_pokemon(hospital) && retorno_de_funcion){
-        retorno_de_funcion = funcion(lista_elemento_en_posicion(hospital->lista_pokemon, contador));
-        contador++;
-    }
-
-    return contador;
+    return lista_con_cada_elemento(hospital->lista_pokemon, hospital_a_cada_pokemon_aux, funcion);
 }
 
 void hospital_destruir(hospital_t* hospital){
@@ -110,4 +113,8 @@ size_t pokemon_nivel(pokemon_t* pokemon){
 
 const char* pokemon_nombre(pokemon_t* pokemon){
     return (pokemon) ? pokemon->nombre : NULL;
+}
+
+entrenador_t* pokemon_entrenador(pokemon_t* pokemon){
+    return (pokemon) ? pokemon->entrenador : NULL;
 }

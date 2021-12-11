@@ -1,11 +1,13 @@
 #include "simulador.h"
+#include "hospital_interno.h"
+#include "heap.h"
+#include "cola.h"
+
+const size_t TAMANIO_INICIAL_HEAP = 6; //! Explicar constante
+
 
 struct _simulador_t{
     hospital_t* hospital;
-    unsigned pokemon_en_espera;
-    unsigned entrenadores_en_espera;
-    unsigned puntos;
-    unsigned cantidad_eventos_simulados;
 
 };
 
@@ -17,13 +19,6 @@ ResultadoSimulacion obtener_estadisticas(simulador_t* simulador, EstadisticasSim
     if(!simulador || !estadisticas)
         return ErrorSimulacion;
 
-    estadisticas->entrenadores_totales = (unsigned)hospital_cantidad_entrenadores(simulador->hospital);
-    estadisticas->entrenadores_atendidos = estadisticas->entrenadores_totales - simulador->entrenadores_en_espera;
-    estadisticas->pokemon_totales = (unsigned)hospital_cantidad_pokemon(simulador->hospital);
-    estadisticas->pokemon_en_espera = simulador->pokemon_en_espera;
-    estadisticas->pokemon_atendidos = estadisticas->pokemon_totales - estadisticas->pokemon_en_espera;
-    estadisticas->cantidad_eventos_simulados = simulador->cantidad_eventos_simulados;
-    estadisticas->puntos = simulador->puntos;
 
     return ExitoSimulacion;
 }
@@ -37,7 +32,17 @@ ResultadoSimulacion atender_proximo_entrenador(simulador_t* simulador){
 }
 
 
+//-----------------------------------------------------//
+/*                FUNCIONES AUXILIARES                 */
+//-----------------------------------------------------//
 
+
+int comparador_pokemon(void* pokemon1, void* pokemon2){ // ! Explicar comparacion
+    if(!pokemon1 || !pokemon2)
+        return 0;
+
+    return (int)pokemon_nivel(pokemon1) - (int)pokemon_nivel(pokemon2);
+}
 
 //-----------------------------------------------------//
 /*            PRIMITIVAS DE SIMULACION                 */
@@ -50,7 +55,7 @@ simulador_t* simulador_crear(hospital_t* hospital){
     simulador_t* simulador = malloc(sizeof(simulador_t));
     if(!simulador)
         return NULL;
-
+   
     simulador->hospital = hospital;
     
     return simulador;
@@ -102,6 +107,7 @@ ResultadoSimulacion simulador_simular_evento(simulador_t* simulador, EventoSimul
 void simulador_destruir(simulador_t* simulador){
     if(!simulador)
         return;
+
 
     hospital_destruir(simulador->hospital);
     free(simulador);
