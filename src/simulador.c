@@ -2,6 +2,7 @@
 #include "hospital_interno.h"
 #include "heap.h"
 #include "cola.h"
+#include <string.h>
 
 const size_t TAMANIO_INICIAL_HEAP = 6; //! Explicar constante
 
@@ -13,12 +14,14 @@ struct _simulador_t{
     unsigned cantidad_entrenadores_totales;
     unsigned puntos;
     unsigned cantidad_eventos_simulados;
+    unsigned cantidad_pokemon_atendidos;
     pokemon_t* pokemon_en_tratamiento;
 };
 
 typedef struct datos_atender_pokemon_entrenador{
     heap_t* pokemon_atendidos;
     entrenador_t* entrenador;
+    unsigned* cantidad_pokemon_atendidos;
 }datos_atender_pokemon_entrenador_t;
 
 
@@ -45,8 +48,11 @@ bool atender_pokemon_de_entrenador(void* pokemon_a_atender, void* _datos_aux){
 
     datos_atender_pokemon_entrenador_t* datos_aux = _datos_aux;
 
-    if(pokemon_entrenador(pokemon_a_atender) == datos_aux->entrenador)
+    if(pokemon_entrenador(pokemon_a_atender) == datos_aux->entrenador){
+        (*datos_aux->cantidad_pokemon_atendidos)++;
         return heap_insertar(datos_aux->pokemon_atendidos, pokemon_a_atender) != NULL;
+    }
+
 
     return true;
 }
@@ -66,13 +72,17 @@ bool encolar_entrenadores(void* entrenador_a_encolar, void* cola_entrenadores){
 /*                FUNCIONES DE EVENTOS                 */
 //-----------------------------------------------------//
 
+/*
+ * Pre: 
+ * Post: Llena los campos de estadisticas con los datos del simulador. Si tiene exito, devuelve ExitoSimulacion y en caso contrario, ErrorSimulacion
+ */
 ResultadoSimulacion obtener_estadisticas(simulador_t* simulador, EstadisticasSimulacion* estadisticas){
     if(!simulador || !estadisticas)
         return ErrorSimulacion;
 
     estadisticas->entrenadores_totales = (unsigned) lista_tamanio(simulador->hospital->lista_entrenadores);
     estadisticas->entrenadores_atendidos = estadisticas->entrenadores_totales - (unsigned) cola_tamanio(simulador->entrenadores_en_espera);
-    estadisticas->pokemon_atendidos = (unsigned) heap_tamanio(simulador->pokemon_atendidos);
+    estadisticas->pokemon_atendidos = simulador->cantidad_pokemon_atendidos;
     estadisticas->pokemon_totales = (unsigned) abb_tamanio(simulador->hospital->lista_pokemon);
     estadisticas->pokemon_en_espera = estadisticas->pokemon_totales - estadisticas->pokemon_atendidos;
     estadisticas->puntos = simulador->puntos;
@@ -82,6 +92,11 @@ ResultadoSimulacion obtener_estadisticas(simulador_t* simulador, EstadisticasSim
 }
 
 
+/*
+ * Pre: 
+ * Post: Agrega los pokemon del siguiente entrenador en la sala de espera a los pokemones atendidos. Si es exitoso devuelve ExitoSimulacion. 
+ *       Si falla o no quedan entrenadores en la cola, devuelve ErrorSimulacion.
+ */
 ResultadoSimulacion atender_proximo_entrenador(simulador_t* simulador){
     if(!simulador || cola_vacia(simulador->entrenadores_en_espera))
         return ErrorSimulacion;
@@ -91,16 +106,33 @@ ResultadoSimulacion atender_proximo_entrenador(simulador_t* simulador){
     datos_atender_pokemon_entrenador_t datos_aux;
     datos_aux.entrenador = entrenador_atendido;
     datos_aux.pokemon_atendidos = simulador->pokemon_atendidos;
+    datos_aux.cantidad_pokemon_atendidos = &(simulador->cantidad_pokemon_atendidos);
+
     
     if(abb_con_cada_elemento(simulador->hospital->lista_pokemon, INORDEN, atender_pokemon_de_entrenador, &datos_aux) != abb_tamanio(simulador->hospital->lista_pokemon))
         return ErrorSimulacion;
     
     if(!simulador->pokemon_en_tratamiento)
         simulador->pokemon_en_tratamiento = heap_extraer_raiz(simulador->pokemon_atendidos);
-    
+        
     return ExitoSimulacion;
 }
 
+
+ResultadoSimulacion obtener_informacion_pokemon_en_tratamiento(simulador_t* simulador, InformacionPokemon* info_pokemon){
+    if(!simulador || !info_pokemon)
+        return ErrorSimulacion;
+
+    if(!simulador->pokemon_en_tratamiento){
+        info_pokemon->nombre_entrenador = NULL;
+        info_pokemon->nombre_pokemon = NULL;
+        return ErrorSimulacion;
+    }
+
+    info_pokemon->nombre_entrenador = pokemon_entrenador(simulador->pokemon_en_tratamiento)->nombre;
+    info_pokemon->nombre_pokemon = simulador->pokemon_en_tratamiento->nombre;
+    return ExitoSimulacion;
+}
 
 //-----------------------------------------------------//
 /*            PRIMITIVAS DE SIMULACION                 */
@@ -129,6 +161,7 @@ simulador_t* simulador_crear(hospital_t* hospital){
     simulador->cantidad_entrenadores_totales = (unsigned) cola_tamanio(simulador->entrenadores_en_espera);
     simulador->pokemon_en_tratamiento = NULL;
     simulador->cantidad_eventos_simulados = 0;
+    simulador->cantidad_pokemon_atendidos = 0;
     simulador->puntos = 0;
     
     return simulador;
@@ -140,6 +173,7 @@ ResultadoSimulacion simulador_simular_evento(simulador_t* simulador, EventoSimul
         return ErrorSimulacion;
 
     ResultadoSimulacion resultado = ErrorSimulacion;
+    simulador->cantidad_eventos_simulados++;
 
     switch(evento){
         case ObtenerEstadisticas:
@@ -151,6 +185,7 @@ ResultadoSimulacion simulador_simular_evento(simulador_t* simulador, EventoSimul
             break;
 
         case ObtenerInformacionPokemonEnTratamiento:
+            resultado = obtener_informacion_pokemon_en_tratamiento(simulador, datos);
             break;
 
         case AdivinarNivelPokemon:

@@ -17,7 +17,7 @@ struct _entrenador_t{
 
 struct _hospital_pkm_t{
     abb_t* lista_pokemon; // ? Cambiado a lista --> Quizas abb?
-    lista_t* lista_entrenadores;  // ? Cambiado a cola
+    lista_t* lista_entrenadores;  // ? Cambiado a lista --> Ya que se puede iterar para copiar elementos
 };
 
 struct _pkm_t{
