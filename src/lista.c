@@ -265,30 +265,3 @@ size_t lista_con_cada_elemento(lista_t* lista, bool (*funcion)(void*, void*), vo
     
     return elementos_iterados;
 }
-
-bool lista_copiar_a_aux(void* elemento, void* _datos_aux){
-    if(!elemento || !_datos_aux)
-        return false;
-
-    datos_copiar_lista_t* datos_aux = _datos_aux;
-
-    if(datos_aux->funcion_insercion(datos_aux->estructura_donde_insertar, elemento, datos_aux->extra) == NULL)
-        datos_aux->retorno = false;
-
-    return datos_aux->retorno;
-}
-
-bool lista_copiar_a(lista_t* lista_original, void* funcion_insercion(void*, void*, void*), void* estructura_donde_insertar, void* extra){
-    if(!lista_original || !funcion_insercion || !estructura_donde_insertar)
-        return false;
-    
-    datos_copiar_lista_t datos_aux;
-    datos_aux.estructura_donde_insertar = estructura_donde_insertar;
-    datos_aux.funcion_insercion = funcion_insercion;
-    datos_aux.extra = extra;
-    datos_aux.retorno = true;
-
-    lista_con_cada_elemento(lista_original, lista_copiar_a_aux, &datos_aux);
-
-    return datos_aux.retorno;
-}
