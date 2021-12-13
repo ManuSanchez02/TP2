@@ -103,7 +103,7 @@ pokemon_t* agregar_pokemon(pokemon_t* vector, pokemon_t elemento, size_t* cantid
     return vector;
 }
 
-entrenador_t* crear_entrenador(char* nombre, int id){
+entrenador_t* entrenador_crear(char* nombre, int id){
         if(!nombre)
         return NULL;
 
@@ -122,7 +122,7 @@ entrenador_t* crear_entrenador(char* nombre, int id){
     return entrenador;
 }
 
-pokemon_t* crear_pokemon(char* nombre, size_t nivel, entrenador_t* entrenador){
+pokemon_t* pokemon_crear(char* nombre, size_t nivel, entrenador_t* entrenador){
     if(!nombre || !entrenador)
         return NULL;
 
@@ -147,16 +147,16 @@ bool parsear_linea(hospital_t* hospital, char** elementos_linea){
     size_t i = 2;
     int id_entrenador = atoi(elementos_linea[POSICION_ID_ENTRENADOR]);
 
-    entrenador_t* entrenador = crear_entrenador(elementos_linea[POSICION_NOMBRE_ENTRENADOR], id_entrenador);
+    entrenador_t* entrenador = entrenador_crear(elementos_linea[POSICION_NOMBRE_ENTRENADOR], id_entrenador);
     if(!entrenador)
         return false;
 
     while(elementos_linea[i] != NULL){
-        pokemon_t* pokemon = crear_pokemon(elementos_linea[i], (size_t)atoi(elementos_linea[i+1]), entrenador);
+        pokemon_t* pokemon = pokemon_crear(elementos_linea[i], (size_t)atoi(elementos_linea[i+1]), entrenador);
         if(!pokemon)
             return false;
 
-        if(!lista_insertar(hospital->lista_pokemon, pokemon))
+        if(!abb_insertar(hospital->lista_pokemon, pokemon))
             return false;
 
         i += POSICION_PRIMER_POKEMON;
@@ -171,11 +171,27 @@ bool parsear_linea(hospital_t* hospital, char** elementos_linea){
     return true;
 }
 
-void* hospital_copiar_aux(void* lista, void* elemento, void* aux){
+/*
+ * Pre:
+ * Post: inserta elemento en lista y devuelve true si fue exitoso y false en caso contrario
+ */
+bool hospital_copiar_entrenadores_aux(void* elemento, void* lista){
     if(!lista || !elemento)
         return false;
 
-    return lista_insertar(lista, elemento);
+    return lista_insertar(lista, elemento) != NULL;
+}
+
+/*
+ * Pre:
+ * Post: inserta elemento en abb y devuelve true si fue exitoso y false en caso contrario
+ */
+bool hospital_copiar_pokemon_aux(void* elemento, void* abb){
+    if(!elemento || !abb)
+        return false;
+
+
+    return abb_insertar(abb, elemento) != NULL;
 }
 
 bool hospital_copiar(hospital_t* hospital_copia, hospital_t* hospital_original){
@@ -183,21 +199,20 @@ bool hospital_copiar(hospital_t* hospital_copia, hospital_t* hospital_original){
         return false;
     
     
-    return lista_copiar_a(hospital_original->lista_pokemon, hospital_copiar_aux, hospital_copia->lista_pokemon, NULL) && lista_copiar_a(hospital_original->lista_entrenadores, hospital_copiar_aux, hospital_copia->lista_entrenadores, NULL);
+    return (abb_con_cada_elemento(hospital_original->lista_pokemon, PREORDEN, hospital_copiar_pokemon_aux, hospital_copia->lista_pokemon) == abb_tamanio(hospital_original->lista_pokemon)
+    && lista_con_cada_elemento(hospital_original->lista_entrenadores, hospital_copiar_entrenadores_aux, hospital_copia->lista_entrenadores) == lista_tamanio(hospital_original->lista_entrenadores));
 }
 
-
-bool destructor_pokemon(void* _pokemon, void* aux){
+void pokemon_destruir(void* _pokemon){
     if(!_pokemon)
-        return false;
+        return;
 
     pokemon_t* pokemon = _pokemon;
     free(pokemon->nombre);
     free(pokemon);
-    return true;
 }
 
-bool destructor_entrenador(void* _entrenador, void* aux){
+bool entrenador_destruir(void* _entrenador, void* aux){
     if(!_entrenador)
         return false;
 
@@ -213,6 +228,16 @@ void hospital_destruir_estructuras(hospital_t* hospital){
         return;
     
     lista_destruir(hospital->lista_entrenadores);
-    lista_destruir(hospital->lista_pokemon); 
+    abb_destruir(hospital->lista_pokemon); 
     free(hospital);
+}
+
+int comparador_nombre_pokemon(void* _pokemon1, void* _pokemon2){
+    if(!_pokemon1 || !_pokemon2)
+        return 0;
+
+    pokemon_t* pokemon1 = _pokemon1;
+    pokemon_t* pokemon2 = _pokemon2;
+
+    return strcmp(pokemon1->nombre, pokemon2->nombre);
 }

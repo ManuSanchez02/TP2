@@ -16,7 +16,7 @@ struct _entrenador_t{
 };
 
 struct _hospital_pkm_t{
-    lista_t* lista_pokemon; // ? Cambiado a lista --> Quizas abb?
+    abb_t* lista_pokemon; // ? Cambiado a lista --> Quizas abb?
     lista_t* lista_entrenadores;  // ? Cambiado a cola
 };
 
@@ -58,13 +58,13 @@ pokemon_t* agregar_pokemon(pokemon_t* vector, pokemon_t elemento, size_t* cantid
  * Pre: nombre debe ser distinto de NULL
  * Post: Devuelve un puntero a entrenador si se pudo crear al entrenador y NULL en caso contrario
  */
-entrenador_t* crear_entrenador(char* nombre, int id);
+entrenador_t* entrenador_crear(char* nombre, int id);
 
 /*
  * Pre: nombre y entrenador debe ser distinto de NULL
  * Post: Devuelve un puntero a pokemon si se pudo crear al pokemon y NULL en caso contrario
  */
-pokemon_t* crear_pokemon(char* nombre, size_t nivel, entrenador_t* entrenador);  //! Corregir
+pokemon_t* pokemon_crear(char* nombre, size_t nivel, entrenador_t* entrenador);  //! Corregir
 
 /*
  * Pre: -
@@ -85,15 +85,24 @@ bool hospital_copiar(hospital_t* hospital_copia, hospital_t* hospital_original);
  * Pre: _pokemon debe ser un puntero a un pokemon_t
  * Post: Libera la memoria asignada a pokemon
  */
-bool destructor_pokemon(void* _pokemon, void* aux);
+void pokemon_destruir(void* _pokemon);
 
 /*
  * Pre: _entrenador debe ser un puntero a un entrenador_t
  * Post: Libera la memoria asignada a entrenador
  */
-bool destructor_entrenador(void* _entrenador, void* aux);
+bool entrenador_destruir(void* _entrenador, void* aux);
 
-
+/*
+ * Pre: 
+ * Post: Libera la memoria asignada a la lista y arbol del hospital (no de los elementos)
+ */
 void hospital_destruir_estructuras(hospital_t* hospital);
+
+/*
+ * Pre: pokemon1 y 2 deben ser punteros a pokemon
+ * Post: Devuelve menor 0 si el nombre de pokemon2 es mayor al de pokemon1. Igual a 0 si los nombres son iguales. Mayor a 0 si el nombre de pokemon 1 es mayor al de pokemon2 (en orden alfabetico)
+ */
+int comparador_nombre_pokemon(void* pokemon1, void* pokemon2);
 
 #endif // HOSPITAL_INTERNO_H_

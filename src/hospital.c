@@ -10,7 +10,7 @@ hospital_t* hospital_crear(){
     if(!hospital)
         return NULL;
 
-    hospital->lista_pokemon = lista_crear();
+    hospital->lista_pokemon = abb_crear(comparador_nombre_pokemon);
     hospital->lista_entrenadores = lista_crear();
     if(!hospital->lista_pokemon || !hospital->lista_entrenadores){
         hospital_destruir(hospital);
@@ -68,7 +68,7 @@ bool hospital_leer_archivo(hospital_t* hospital, const char* nombre_archivo){
 }
 
 size_t hospital_cantidad_pokemon(hospital_t* hospital){
-    return (hospital) ? lista_tamanio(hospital->lista_pokemon) : 0;
+    return (hospital) ? abb_tamanio(hospital->lista_pokemon) : 0;
 }
 
 size_t hospital_cantidad_entrenadores(hospital_t* hospital){
@@ -89,21 +89,17 @@ size_t hospital_a_cada_pokemon(hospital_t* hospital, bool (*funcion)(pokemon_t* 
     if(!hospital || !funcion)
         return 0;
 
-    if(!ordenar_alfabeticamente(hospital->lista_pokemon, hospital_cantidad_pokemon(hospital)))
-        return 0;
-
-    return lista_con_cada_elemento(hospital->lista_pokemon, hospital_a_cada_pokemon_aux, funcion);
+    return abb_con_cada_elemento(hospital->lista_pokemon, INORDEN, hospital_a_cada_pokemon_aux, funcion);
 }
 
 void hospital_destruir(hospital_t* hospital){
     if(!hospital)
         return;
     
-    lista_con_cada_elemento(hospital->lista_entrenadores, destructor_entrenador, NULL);
-
-    lista_con_cada_elemento(hospital->lista_pokemon, destructor_pokemon, NULL);
-
-    hospital_destruir_estructuras(hospital);
+    lista_con_cada_elemento(hospital->lista_entrenadores, entrenador_destruir, NULL);
+    lista_destruir(hospital->lista_entrenadores);
+    abb_destruir_todo(hospital->lista_pokemon, pokemon_destruir);
+    free(hospital);
 }
 
 size_t pokemon_nivel(pokemon_t* pokemon){

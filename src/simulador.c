@@ -16,10 +16,10 @@ struct _simulador_t{
     pokemon_t* pokemon_en_tratamiento;
 };
 
-typedef struct pokemon_y_entrenador{
-    pokemon_t* pokemon;
+typedef struct datos_atender_pokemon_entrenador{
+    heap_t* pokemon_atendidos;
     entrenador_t* entrenador;
-}pokemon_y_entrenador_t;
+}datos_atender_pokemon_entrenador_t;
 
 
 //-----------------------------------------------------//
@@ -34,28 +34,32 @@ int comparador_pokemon(void* pokemon1, void* pokemon2){ // ! Explicar comparacio
     return (int)pokemon_nivel(pokemon1) - (int)pokemon_nivel(pokemon2);
 }
 
+
 /*
- * Pre: entrenador debe ser un puntero a entrenador, _pokemon_atendidos un puntero al heap de pokemones y _pokemon_a_atender un puntero a pokemon
- * Post: Devuelve el heap de pokemon si la operacion fue exitosa y NULL en caso contrario. Solo agrega al pokemon si su entrenador es igual a entrenador.
+ * Pre: pokemon_a_atender debe ser un puntero a pokemon y datos aux debe ser un puntero a un datos_atender_pokemon_entrenador_t inicializado con los datos correspondientes
+ * Post: Devuelve false si hubo un error a la hora de insertar y true en caso contrario. Inserta el pokemon a atender en el heap de datos_aux->pokemon_atendidos
  */
-void* atender_pokemon(void* _pokemon_atendidos, void* _pokemon_a_atender, void* entrenador){
-    if(!_pokemon_atendidos || !_pokemon_a_atender || !entrenador)
-        return NULL;
+bool atender_pokemon_de_entrenador(void* pokemon_a_atender, void* _datos_aux){
+    if(!pokemon_a_atender || !_datos_aux)
+        return false;
 
-    heap_t* pokemon_atendidos = _pokemon_atendidos;
-    pokemon_t* pokemon_a_atender = _pokemon_a_atender;
+    datos_atender_pokemon_entrenador_t* datos_aux = _datos_aux;
 
-    if(pokemon_entrenador(pokemon_a_atender) == entrenador)
-        return heap_insertar(pokemon_atendidos, pokemon_a_atender);
+    if(pokemon_entrenador(pokemon_a_atender) == datos_aux->entrenador)
+        return heap_insertar(datos_aux->pokemon_atendidos, pokemon_a_atender) != NULL;
 
-    return pokemon_atendidos;
+    return true;
 }
 
-void* encolar_entrenadores(void* cola_entrenadores, void* entrenador_a_encolar, void* aux){
+/*
+ * Pre: entrenador_a_encolar debe ser un puntero a entrenador, cola_entrenadores un puntero a una cola de entrenadores
+ * Post: Devuelve true si pudo encolar entrenador_a_encolar en cola_entrenadores y false en caso contrario.
+ */
+bool encolar_entrenadores(void* entrenador_a_encolar, void* cola_entrenadores){
     if(!cola_entrenadores || !entrenador_a_encolar)
-        return NULL;
+        return false;
 
-    return cola_encolar(cola_entrenadores, entrenador_a_encolar);
+    return cola_encolar(cola_entrenadores, entrenador_a_encolar) != NULL;
 }
 
 //-----------------------------------------------------//
@@ -69,7 +73,7 @@ ResultadoSimulacion obtener_estadisticas(simulador_t* simulador, EstadisticasSim
     estadisticas->entrenadores_totales = (unsigned) lista_tamanio(simulador->hospital->lista_entrenadores);
     estadisticas->entrenadores_atendidos = estadisticas->entrenadores_totales - (unsigned) cola_tamanio(simulador->entrenadores_en_espera);
     estadisticas->pokemon_atendidos = (unsigned) heap_tamanio(simulador->pokemon_atendidos);
-    estadisticas->pokemon_totales = (unsigned) lista_tamanio(simulador->hospital->lista_pokemon);
+    estadisticas->pokemon_totales = (unsigned) abb_tamanio(simulador->hospital->lista_pokemon);
     estadisticas->pokemon_en_espera = estadisticas->pokemon_totales - estadisticas->pokemon_atendidos;
     estadisticas->puntos = simulador->puntos;
     estadisticas->cantidad_eventos_simulados = simulador->cantidad_eventos_simulados;
@@ -77,13 +81,18 @@ ResultadoSimulacion obtener_estadisticas(simulador_t* simulador, EstadisticasSim
     return ExitoSimulacion;
 }
 
+
 ResultadoSimulacion atender_proximo_entrenador(simulador_t* simulador){
     if(!simulador || cola_vacia(simulador->entrenadores_en_espera))
         return ErrorSimulacion;
 
     entrenador_t* entrenador_atendido = cola_desencolar(simulador->entrenadores_en_espera);
+
+    datos_atender_pokemon_entrenador_t datos_aux;
+    datos_aux.entrenador = entrenador_atendido;
+    datos_aux.pokemon_atendidos = simulador->pokemon_atendidos;
     
-    if(!lista_copiar_a(simulador->hospital->lista_pokemon, atender_pokemon, simulador->pokemon_atendidos, entrenador_atendido))
+    if(abb_con_cada_elemento(simulador->hospital->lista_pokemon, INORDEN, atender_pokemon_de_entrenador, &datos_aux) != abb_tamanio(simulador->hospital->lista_pokemon))
         return ErrorSimulacion;
     
     if(!simulador->pokemon_en_tratamiento)
@@ -115,7 +124,7 @@ simulador_t* simulador_crear(hospital_t* hospital){
         return NULL;
     }
 
-    lista_copiar_a(simulador->hospital->lista_entrenadores, encolar_entrenadores, simulador->entrenadores_en_espera, NULL);
+    lista_con_cada_elemento(simulador->hospital->lista_entrenadores, encolar_entrenadores, simulador->entrenadores_en_espera);
 
     simulador->cantidad_entrenadores_totales = (unsigned) cola_tamanio(simulador->entrenadores_en_espera);
     simulador->pokemon_en_tratamiento = NULL;
