@@ -283,7 +283,7 @@ size_t abb_con_cada_elemento(abb_t *arbol, abb_recorrido recorrido, bool (*funci
  * Pre: -
  * Post: Agrega elemento a vector->elementos aumentando la cantidad de elementos del mismo.
  */ 
-bool agregar_a_vector(void* elemento, void* vector){
+bool agregar_elemento_a_vector(void* elemento, void* vector){
   if(!vector)
     return NULL;
   
@@ -306,7 +306,7 @@ size_t abb_recorrer(abb_t* arbol, abb_recorrido recorrido, void** array, size_t 
   vector.tamanio_maximo = tamanio_array;
   vector.tamanio_actual = 0;
 
-  abb_con_cada_elemento(arbol, recorrido, agregar_a_vector, &vector);
+  abb_con_cada_elemento(arbol, recorrido, agregar_elemento_a_vector, &vector);
 
   return vector.tamanio_actual;
 }
