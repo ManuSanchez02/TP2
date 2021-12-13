@@ -7,6 +7,7 @@
 #include "split.h"
 #include "lista.h"
 #include "cola.h"
+#include "abb.h"
 
 
 struct _entrenador_t{
@@ -16,7 +17,7 @@ struct _entrenador_t{
 
 struct _hospital_pkm_t{
     lista_t* lista_pokemon; // ? Cambiado a lista --> Quizas abb?
-    cola_t* lista_entrenadores;  // ? Cambiado a cola
+    lista_t* lista_entrenadores;  // ? Cambiado a cola
 };
 
 struct _pkm_t{
@@ -90,7 +91,7 @@ bool destructor_pokemon(void* _pokemon, void* aux);
  * Pre: _entrenador debe ser un puntero a un entrenador_t
  * Post: Libera la memoria asignada a entrenador
  */
-void destructor_entrenador(entrenador_t* entrenador);
+bool destructor_entrenador(void* _entrenador, void* aux);
 
 
 void hospital_destruir_estructuras(hospital_t* hospital);

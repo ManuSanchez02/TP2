@@ -155,4 +155,10 @@ void lista_iterador_destruir(lista_iterador_t* iterador);
  */
 size_t lista_con_cada_elemento(lista_t* lista, bool (*funcion)(void*, void*), void *contexto);
 
+/*
+ * Pre: estructura_donde_insertar debe ser un puntero a un TDA valido y con espacio. Funcion_insercion debe ser la funcion respectiva para insertar elementos
+ * Post: Devuelve true si puede insertar todos los elementos de lista en estructura_donde_insertar y false en caso contrario
+ */
+bool lista_copiar_a(lista_t* lista_original, void* funcion_insercion(void*, void*, void*), void* estructura_donde_insertar, void* extra);
+
 #endif /* __LISTA_H__ */

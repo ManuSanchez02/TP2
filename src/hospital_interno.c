@@ -7,13 +7,14 @@ const size_t MULTIPLICADOR_ALLOC = 10;
 #define POSICION_PRIMER_POKEMON 2
 
 
+
 char* leer_linea(FILE* archivo){
     size_t longitud = 0;
     size_t maximo = 1;
     char* linea = malloc(sizeof(char));
     if(!linea)
         return NULL;
-    
+
     char caracter_leido = (char)fgetc(archivo);
     while(caracter_leido != '\n' && caracter_leido != EOF){
 
@@ -161,7 +162,7 @@ bool parsear_linea(hospital_t* hospital, char** elementos_linea){
         i += POSICION_PRIMER_POKEMON;
     }
 
-    if(!cola_encolar(hospital->lista_entrenadores, entrenador))
+    if(!lista_insertar(hospital->lista_entrenadores, entrenador))
         return false;
     
 
@@ -170,29 +171,25 @@ bool parsear_linea(hospital_t* hospital, char** elementos_linea){
     return true;
 }
 
+void* hospital_copiar_aux(void* lista, void* elemento, void* aux){
+    if(!lista || !elemento)
+        return false;
+
+    return lista_insertar(lista, elemento);
+}
+
 bool hospital_copiar(hospital_t* hospital_copia, hospital_t* hospital_original){
     if(!hospital_copia || !hospital_original)
         return false;
-
-    for(size_t i = 0; i < lista_tamanio(hospital_original->lista_pokemon); i++){
-        pokemon_t* pokemon = lista_elemento_en_posicion(hospital_original->lista_pokemon, i);
-        if(!lista_insertar(hospital_copia->lista_pokemon, pokemon))
-            return false;
-    }
-
-    for(size_t i = 0; i < cola_tamanio(hospital_original->lista_entrenadores); i++){
-        entrenador_t* entrenador = cola_desencolar(hospital_original->lista_entrenadores); //! Explicar xq desencolo y encolo
-        if(!cola_encolar(hospital_original->lista_entrenadores, entrenador) || !cola_encolar(hospital_copia->lista_entrenadores, entrenador))
-            return false;
-    }
-
-    return true;
+    
+    
+    return lista_copiar_a(hospital_original->lista_pokemon, hospital_copiar_aux, hospital_copia->lista_pokemon, NULL) && lista_copiar_a(hospital_original->lista_entrenadores, hospital_copiar_aux, hospital_copia->lista_entrenadores, NULL);
 }
 
 
 bool destructor_pokemon(void* _pokemon, void* aux){
     if(!_pokemon)
-        return true;
+        return false;
 
     pokemon_t* pokemon = _pokemon;
     free(pokemon->nombre);
@@ -200,19 +197,22 @@ bool destructor_pokemon(void* _pokemon, void* aux){
     return true;
 }
 
-void destructor_entrenador(entrenador_t* entrenador){
-    if(!entrenador)
-        return;
+bool destructor_entrenador(void* _entrenador, void* aux){
+    if(!_entrenador)
+        return false;
+
+    entrenador_t* entrenador = _entrenador;
 
     free(entrenador->nombre);
     free(entrenador);
+    return true;
 }
 
 void hospital_destruir_estructuras(hospital_t* hospital){
     if(!hospital)
         return;
     
-    cola_destruir(hospital->lista_entrenadores);
+    lista_destruir(hospital->lista_entrenadores);
     lista_destruir(hospital->lista_pokemon); 
     free(hospital);
 }

@@ -10,7 +10,7 @@ typedef struct _heap_t heap_t;
 
 heap_t* heap_crear(size_t tamanio_inicial, int (*comparador)(void*, void*));
 
-bool heap_insertar(heap_t* heap, void* elemento);
+void* heap_insertar(heap_t* heap, void* elemento);
 
 void* heap_extraer_raiz(heap_t* heap);
 

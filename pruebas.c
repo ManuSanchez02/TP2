@@ -4,6 +4,13 @@
 #include <string.h>
 #include <stdbool.h>
 
+void* lista_copiar_aux(void* lista, void* elemento, void* aux){
+    if(!lista || !elemento)
+        return NULL;
+
+    return lista_insertar(lista, elemento);
+}
+
 bool ignorar_pokemon(pokemon_t* p){
     p = p;
     return true;
@@ -139,11 +146,44 @@ void dadoUnPokemon_puedoObtenerSuInformacion(){
     pa2m_afirmar((strcmp(pokemon_nombre(pokemon), "Charmander") == 0), "Puedo obtener el nombre de un pokemon");
     pa2m_afirmar((pokemon_nivel(pokemon) == 25), "Puedo obtener el nivel de un pokemon");
 
-    destructor_entrenador(entrenador);
+    destructor_entrenador(entrenador, NULL);
     destructor_pokemon(pokemon, NULL);
 }
 
+void dadaUnaListaConElementos_PuedoCopiarlaAOtraLista(){
+    lista_t* lista = lista_crear();
+    lista_t* lista_copia = lista_crear();
+    int elem1 = 2;
+    int elem2 = 4;
+    int elem3 = 67;
+    int elem4 = 35;
+    int elem5 = 222;
+    int elem6 = 645;
 
+    lista_insertar(lista, &elem1);
+    lista_insertar(lista, &elem2);
+    lista_insertar(lista, &elem3);
+    lista_insertar(lista, &elem4);
+    lista_insertar(lista, &elem5);
+    lista_insertar(lista, &elem6);
+
+    pa2m_afirmar((lista_copiar_a(lista, lista_copiar_aux, lista_copia, NULL) == true), "La operacion de copia fue exitosa");
+    pa2m_afirmar((lista_tamanio(lista) == lista_tamanio(lista_copia)), "Ambas listas tienen misma cantidad de elementos");
+    pa2m_afirmar((lista_primero(lista) == lista_primero(lista_copia)), "Ambas listas tienen el mismo primer elemento");
+    pa2m_afirmar((lista_ultimo(lista) == lista_ultimo(lista_copia)), "Ambas listas tienen el mismo ultimo elemento");
+
+    bool hubo_fallo = false;
+    for(size_t i = 0; i < 6; i++){
+        if(lista_elemento_en_posicion(lista, i) != lista_elemento_en_posicion(lista_copia, i))
+            hubo_fallo = true;
+    }
+
+    pa2m_afirmar((hubo_fallo == false), "La copia tiene los mismos elementos y orden que la original");
+    pa2m_afirmar((lista_quitar(lista) == lista_quitar(lista_copia)), "Al quitar un elemento de cada lista, es el mismo removido");
+    
+    lista_destruir(lista);
+    lista_destruir(lista_copia);
+}
 
 int main(){
 
@@ -167,6 +207,10 @@ int main(){
 
     pa2m_nuevo_grupo("Pruebas de obtener pokemon");
     dadoUnPokemon_puedoObtenerSuInformacion();
+
+
+    pa2m_nuevo_grupo("Pruebas de copiar lista");
+    dadaUnaListaConElementos_PuedoCopiarlaAOtraLista();
 
 
     return pa2m_mostrar_reporte();

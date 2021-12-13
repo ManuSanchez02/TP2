@@ -58,14 +58,14 @@ void sift_up(heap_t* heap, int pos_actual){
     sift_up(heap, pos_padre);
 }
 
-bool heap_insertar(heap_t* heap, void* elemento){
+void* heap_insertar(heap_t* heap, void* elemento){
     if(!heap)
-        return false;
+        return NULL;
     
     if(heap->tamanio_max == heap->tope){
         void** vector_aux = realloc(heap->vector, (heap->tamanio_max*2)*sizeof(void*));
         if(!vector_aux)
-            return false;
+            return NULL;
         
         heap->vector = vector_aux;
         heap->tamanio_max *= 2;
@@ -74,7 +74,7 @@ bool heap_insertar(heap_t* heap, void* elemento){
     heap->vector[heap->tope] = elemento;
     sift_up(heap, (int)heap->tope);
     heap->tope += 1;
-    return true;
+    return heap;
 }
 
 void sift_down(heap_t* heap, int pos_actual){
