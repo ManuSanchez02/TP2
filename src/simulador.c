@@ -6,6 +6,7 @@
 
 const size_t TAMANIO_INICIAL_HEAP = 6; //! Explicar constante
 const int RESULTADO_CORRECTO = 0;
+const int ID_DIFICULTAD_NO_ENCONTRADA = -1;
 
 struct _simulador_t{
     hospital_t* hospital;
@@ -257,12 +258,42 @@ ResultadoSimulacion obtener_informacion_dificultad(simulador_t* simulador, Infor
     if(!simulador || !info_dificultad)
         return ErrorSimulacion;
 
+    DatosDificultad* dificultad_buscada = lista_elemento_en_posicion(simulador->dificultades, (size_t)info_dificultad->id);
+    if(!dificultad_buscada){
+        info_dificultad->id = ID_DIFICULTAD_NO_ENCONTRADA;
+        info_dificultad->en_uso = false;
+        info_dificultad->nombre_dificultad = NULL;
+        return ErrorSimulacion;
+    }
+
+    info_dificultad->en_uso = simulador->dificultad_seleccionada == dificultad_buscada;
+    info_dificultad->nombre_dificultad = dificultad_buscada->nombre;
+
     return ExitoSimulacion;
 }
 
 //-----------------------------------------------------//
 /*            FUNCIONES DE DIFICULTADES                */
 //-----------------------------------------------------//
+
+int verificar_nivel(unsigned int nivel_adivinado, unsigned int nivel_pokemon){
+    return (int)(nivel_adivinado - nivel_pokemon);
+}
+
+unsigned int puntaje_personalizado(const unsigned int intentos){
+    if(intentos > 10)
+        return 0;
+    
+    return 10-intentos;
+}
+
+const char* verificacion_a_string_facil(int resultado_verificacion){
+    if(resultado_verificacion == 0){
+        return "Acertaste el nivel del pokemon!";
+    }else if(resultado_verificacion < 5){
+        return ""; // SEGUIR ACA
+    }
+}
 
 bool agregar_dificultades_iniciales(simulador_t* simulador){
     if(!simulador)
@@ -274,20 +305,20 @@ bool agregar_dificultades_iniciales(simulador_t* simulador){
 
     facil.nombre = "Facil";
     facil.calcular_puntaje = NULL;
-    facil.verificar_nivel = NULL;
+    facil.verificar_nivel = verificar_nivel;
     facil.verificacion_a_string = NULL;
     agregar_dificultad(simulador, &facil);
 
     normal.nombre = "Normal";
     normal.calcular_puntaje = NULL;
-    normal.verificar_nivel = NULL;
+    normal.verificar_nivel = verificar_nivel;
     normal.verificacion_a_string = NULL;
     agregar_dificultad(simulador, &normal);
 
 
     dificil.nombre = "Dificil";
     dificil.calcular_puntaje = NULL;
-    dificil.verificar_nivel = NULL; 
+    dificil.verificar_nivel = verificar_nivel; 
     dificil.verificacion_a_string = NULL;
     agregar_dificultad(simulador, &dificil);
 
@@ -379,6 +410,7 @@ ResultadoSimulacion simulador_simular_evento(simulador_t* simulador, EventoSimul
             break;
 
         case FinalizarSimulacion:
+            resultado = finalizar_simulacion(simulador, datos);
             break;
         
         default: 

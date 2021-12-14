@@ -193,14 +193,77 @@ void dadoUnSimulador_puedoAgregarDificultad(){
     hospital_leer_archivo(h, "ejemplos/varios_entrenadores.hospital");
     simulador_t* simulador = simulador_crear(h);
     DatosDificultad dificultad;
-    InformacionDificultad info;
     dificultad.nombre = "Personalizada";
     dificultad.calcular_puntaje = puntaje_personalizado;
     dificultad.verificar_nivel = verificar_nivel_personalizado;
     dificultad.verificacion_a_string = verificacion_a_string_personalizado;
 
     pa2m_afirmar((simulador_simular_evento(simulador, AgregarDificultad, &dificultad) == ExitoSimulacion), "Se pudo agregar la dificultad");
-   
+
+    simulador_destruir(simulador);
+}
+
+void dadoUnSimulador_puedoObtenerSusDificultades(){
+    hospital_t* h = hospital_crear();
+    hospital_leer_archivo(h, "ejemplos/varios_entrenadores.hospital");
+    simulador_t* simulador = simulador_crear(h);
+    InformacionDificultad info;
+    info.id = 0;
+    pa2m_afirmar((simulador_simular_evento(simulador, ObtenerInformacionDificultad, &info) == ExitoSimulacion), "Se pudo obtener la dificultad Facil");
+    pa2m_afirmar((info.id == 0), "El id es correcto");
+    pa2m_afirmar((strcmp(info.nombre_dificultad, "Facil") == 0), "El nombre es correcto");
+    pa2m_afirmar((info.en_uso == true), "Esta en uso");
+
+    info.id = 1;
+    pa2m_afirmar((simulador_simular_evento(simulador, ObtenerInformacionDificultad, &info) == ExitoSimulacion), "Se pudo obtener la dificultad Normal");
+    pa2m_afirmar((info.id == 1), "El id es correcto");
+    pa2m_afirmar((strcmp(info.nombre_dificultad, "Normal") == 0), "El nombre es correcto");
+    pa2m_afirmar((info.en_uso == false), "No esta en uso");
+
+    info.id = 2;
+    pa2m_afirmar((simulador_simular_evento(simulador, ObtenerInformacionDificultad, &info) == ExitoSimulacion), "Se pudo obtener la dificultad Dificil");
+    pa2m_afirmar((info.id == 2), "El id es correcto");
+    pa2m_afirmar((strcmp(info.nombre_dificultad, "Dificil") == 0), "El nombre es correcto");
+    pa2m_afirmar((info.en_uso == false), "No esta en uso");
+
+    simulador_destruir(simulador);
+}
+
+
+void dadoUnSimulador_puedoAgregarDificultad_yLuegoBuscarla(){
+    hospital_t* h = hospital_crear();
+    hospital_leer_archivo(h, "ejemplos/varios_entrenadores.hospital");
+    simulador_t* simulador = simulador_crear(h);
+    DatosDificultad dificultad;
+    InformacionDificultad info;
+    dificultad.nombre = "Personalizada";
+    dificultad.calcular_puntaje = puntaje_personalizado;
+    dificultad.verificar_nivel = verificar_nivel_personalizado;
+    dificultad.verificacion_a_string = verificacion_a_string_personalizado;
+
+    info.id = 3;
+
+    simulador_simular_evento(simulador, AgregarDificultad, &dificultad);
+    pa2m_afirmar((simulador_simular_evento(simulador, ObtenerInformacionDificultad, &info) == ExitoSimulacion), "Se pudo obtener la dificultad personalizada");
+    pa2m_afirmar((info.id == 3), "El id es correcto");
+    pa2m_afirmar((strcmp(info.nombre_dificultad, "Personalizada") == 0), "El nombre es correcto");
+    pa2m_afirmar((info.en_uso == false), "No esta en uso");
+
+    simulador_destruir(simulador);
+}
+
+void dadoUnSimulador_noPuedoObtenerUnaDificultadConIdInvalido(){
+    hospital_t* h = hospital_crear();
+    hospital_leer_archivo(h, "ejemplos/varios_entrenadores.hospital");
+    simulador_t* simulador = simulador_crear(h);
+    InformacionDificultad info;
+
+    info.id = 3;
+
+    pa2m_afirmar((simulador_simular_evento(simulador, ObtenerInformacionDificultad, &info) == ErrorSimulacion), "No se pudo obtener la dificultad con id invalido");
+    pa2m_afirmar((info.id == -1), "El id cambio a -1");
+    pa2m_afirmar((info.nombre_dificultad == NULL), "El nombre es NULL");
+    pa2m_afirmar((info.en_uso == false), "No esta en uso");
 
     simulador_destruir(simulador);
 }
@@ -217,7 +280,7 @@ int main(){
     dadoUnSimuladorNULL_noPuedoHacerOperaciones();
 
 
-    pa2m_nuevo_grupo("Pruebas de evento OBTENER");
+    pa2m_nuevo_grupo("Pruebas de evento OBTENER ESTADISTICAS");
     dadoUnSimuladorSinEntrenadoresAtendidos_puedoObtenerEstadisticas();
     dadoUnSimuladorSinEntrenadoresAtendidos_sinEstructuraDeEstadisticas_noPuedoObtenerEstadisticas();
 
@@ -235,6 +298,10 @@ int main(){
     pa2m_nuevo_grupo("Pruebas de evento AGREGAR DIFICULTAD");
     dadoUnSimulador_puedoAgregarDificultad();
 
+    pa2m_nuevo_grupo("Pruebas de evento OBTENER DIFICULTAD");
+    dadoUnSimulador_puedoObtenerSusDificultades();
+    dadoUnSimulador_puedoAgregarDificultad_yLuegoBuscarla();
+    dadoUnSimulador_noPuedoObtenerUnaDificultadConIdInvalido();
 
 
     return pa2m_mostrar_reporte();
