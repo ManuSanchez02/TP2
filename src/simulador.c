@@ -15,7 +15,6 @@ struct _simulador_t{
     lista_t* dificultades;
     DatosDificultad* dificultad_seleccionada; //! Explicar por que uso puntero en vez de id -> es mas simple el acceso (no hay que iterar la lista)
     size_t cantidad_intentos;
-    unsigned cantidad_entrenadores_totales;
     unsigned puntos;
     unsigned cantidad_eventos_simulados;
     unsigned cantidad_pokemon_atendidos;
@@ -36,6 +35,16 @@ typedef struct puntero_y_retorno{ //! EXPLICAR XQ ESTO -> Es la unica forma de s
 /*                FUNCIONES AUXILIARES                 */
 //-----------------------------------------------------//
 
+
+bool dificultad_destruir(void* _dificultad, void* aux){
+    if(!_dificultad)
+        return false;
+
+    DatosDificultad* dificultad = _dificultad;
+
+    free(dificultad);
+    return true;
+}
 
 int comparador_pokemon(void* pokemon1, void* pokemon2){ // ! Explicar comparacion
     if(!pokemon1 || !pokemon2)
@@ -80,7 +89,7 @@ bool encolar_entrenadores(void* entrenador_a_encolar, void* _datos_aux){
 
 /*
  * Pre: _dificultad debe ser puntero a DatosDificultad y _datos_aux un puntero a puntero_y_retorno_t con un puntero a la dificultad a verificar
- * Post: Devuelve true si las dificultades tienen nombre distinto y false en caso contrario. 
+ * Post: Devuelve true si las dificultades tienen nombre distinto y false en caso contrario. Guarda en datos_aux->retorno el valor de retorno de la funcion
  */
 bool dificultad_no_existe(void* _dificultad, void* _datos_aux){
     if(!_dificultad || !_datos_aux)
@@ -89,19 +98,12 @@ bool dificultad_no_existe(void* _dificultad, void* _datos_aux){
     DatosDificultad* dificultad= _dificultad;
     puntero_y_retorno_t* datos_aux = _datos_aux;
 
-    datos_aux->retorno = strcmp(((DatosDificultad*)(datos_aux->puntero))->nombre, dificultad->nombre) == 0;
+    datos_aux->retorno = strcmp(((DatosDificultad*)(datos_aux->puntero))->nombre, dificultad->nombre) != 0;
 
     return datos_aux->retorno;
 }
 
-bool agregar_dificultades_iniciales(simulador_t* simulador){
-    if(!simulador)
-        return false;
 
-        // CONTINUAR ACA
-
-    return true;
-}
 
 //-----------------------------------------------------//
 /*                FUNCIONES DE EVENTOS                 */
@@ -204,7 +206,7 @@ ResultadoSimulacion seleccionar_dificultad(simulador_t* simulador, int* id){
     if(!simulador || !id)
         return ErrorSimulacion;
 
-    DatosDificultad* dificultad_seleccionada = lista_elemento_en_posicion(simulador->dificultades, *(size_t*)id);
+    DatosDificultad* dificultad_seleccionada = lista_elemento_en_posicion(simulador->dificultades, (size_t)*id);
 
     if(!dificultad_seleccionada)
         return ErrorSimulacion;
@@ -228,8 +230,10 @@ ResultadoSimulacion agregar_dificultad(simulador_t* simulador, DatosDificultad* 
 
     lista_con_cada_elemento(simulador->dificultades, dificultad_no_existe, &datos_aux);
     DatosDificultad* dificultad_copia = malloc(sizeof(DatosDificultad));
-    if(!dificultad_copia ||  !datos_aux.retorno)
+    if(!dificultad_copia ||  !datos_aux.retorno){
+        dificultad_destruir(dificultad_copia, NULL);
         return ErrorSimulacion;
+    }
 
 
     dificultad_copia->nombre = dificultad->nombre;                  // ? Crear dificultad
@@ -247,6 +251,52 @@ ResultadoSimulacion agregar_dificultad(simulador_t* simulador, DatosDificultad* 
 
     return ExitoSimulacion;
 }
+
+
+ResultadoSimulacion obtener_informacion_dificultad(simulador_t* simulador, InformacionDificultad* info_dificultad){
+    if(!simulador || !info_dificultad)
+        return ErrorSimulacion;
+
+    return ExitoSimulacion;
+}
+
+//-----------------------------------------------------//
+/*            FUNCIONES DE DIFICULTADES                */
+//-----------------------------------------------------//
+
+bool agregar_dificultades_iniciales(simulador_t* simulador){
+    if(!simulador)
+        return false;
+
+    DatosDificultad facil;
+    DatosDificultad normal;
+    DatosDificultad dificil;
+
+    facil.nombre = "Facil";
+    facil.calcular_puntaje = NULL;
+    facil.verificar_nivel = NULL;
+    facil.verificacion_a_string = NULL;
+    agregar_dificultad(simulador, &facil);
+
+    normal.nombre = "Normal";
+    normal.calcular_puntaje = NULL;
+    normal.verificar_nivel = NULL;
+    normal.verificacion_a_string = NULL;
+    agregar_dificultad(simulador, &normal);
+
+
+    dificil.nombre = "Dificil";
+    dificil.calcular_puntaje = NULL;
+    dificil.verificar_nivel = NULL; 
+    dificil.verificacion_a_string = NULL;
+    agregar_dificultad(simulador, &dificil);
+
+
+    return true;
+}
+
+
+
 //-----------------------------------------------------//
 /*            PRIMITIVAS DE SIMULACION                 */
 //-----------------------------------------------------//
@@ -271,6 +321,13 @@ simulador_t* simulador_crear(hospital_t* hospital){
         return NULL;
     }
 
+    simulador->pokemon_en_tratamiento = NULL;
+    simulador->dificultad_seleccionada = NULL;
+    simulador->cantidad_eventos_simulados = 0;
+    simulador->cantidad_pokemon_atendidos = 0;
+    simulador->puntos = 0;
+    simulador->cantidad_intentos = 0;
+
     puntero_y_retorno_t datos_aux;
     datos_aux.puntero = simulador->entrenadores_en_espera;
     datos_aux.retorno = true;
@@ -280,15 +337,6 @@ simulador_t* simulador_crear(hospital_t* hospital){
         simulador_destruir(simulador);
         return NULL;
     }
-
-    simulador->cantidad_entrenadores_totales = (unsigned) cola_tamanio(simulador->entrenadores_en_espera);
-    simulador->pokemon_en_tratamiento = NULL;
-    simulador->dificultad_seleccionada = NULL;
-    simulador->cantidad_eventos_simulados = 0;
-    simulador->cantidad_pokemon_atendidos = 0;
-    simulador->puntos = 0;
-    simulador->cantidad_intentos = 0;
-
 
     return simulador;
 }
@@ -327,6 +375,7 @@ ResultadoSimulacion simulador_simular_evento(simulador_t* simulador, EventoSimul
             break;
 
         case ObtenerInformacionDificultad:
+            resultado = obtener_informacion_dificultad(simulador, datos);
             break;
 
         case FinalizarSimulacion:
@@ -337,15 +386,6 @@ ResultadoSimulacion simulador_simular_evento(simulador_t* simulador, EventoSimul
     }
 
     return resultado;
-}
-
-
-bool dificultad_destruir(void* dificultad, void* aux){
-    if(!dificultad)
-        return false;
-
-    free(dificultad);
-    return true;
 }
 
 

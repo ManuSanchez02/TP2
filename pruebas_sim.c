@@ -193,7 +193,8 @@ void dadoUnSimulador_puedoAgregarDificultad(){
     hospital_leer_archivo(h, "ejemplos/varios_entrenadores.hospital");
     simulador_t* simulador = simulador_crear(h);
     DatosDificultad dificultad;
-    dificultad.nombre = "Facil";
+    InformacionDificultad info;
+    dificultad.nombre = "Personalizada";
     dificultad.calcular_puntaje = puntaje_personalizado;
     dificultad.verificar_nivel = verificar_nivel_personalizado;
     dificultad.verificacion_a_string = verificacion_a_string_personalizado;
