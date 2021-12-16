@@ -6,12 +6,13 @@ valgrind: main
 
 main: main.c src/*.c src/*.h
 	gcc $(CFLAGS) -o main main.c src/*.c 2>&1
+	./main
 
 pruebas-sim: pruebas_sim.c src/*.c src/*.h
-		gcc $(CFLAGS) -o pruebas_sim pruebas_sim.c src/*.c 2>&1
+	gcc $(CFLAGS) -o pruebas_sim pruebas_sim.c src/*.c 2>&1
  
 valgrind-pruebas-sim: pruebas-sim
-		valgrind $(VFLAGS) ./pruebas_sim 2>&1
+	valgrind $(VFLAGS) ./pruebas_sim 2>&1
 
 valgrind-pruebas: pruebas
 	valgrind $(VFLAGS) ./pruebas 2>&1
