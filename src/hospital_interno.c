@@ -111,14 +111,14 @@ entrenador_t* entrenador_crear(char* nombre, int id){
     if(!entrenador)
         return NULL;
 
-    size_t tamanio = sizeof(char)*(strlen(nombre)+1);
+    size_t tamanio = strlen(nombre)+1;
     entrenador->id = id;
     entrenador->nombre = malloc(tamanio);
     if(!entrenador->nombre){
         free(entrenador->nombre);
         return NULL;
     }
-    strncpy(entrenador->nombre, nombre, tamanio);
+    memcpy(entrenador->nombre, nombre, tamanio);
     return entrenador;
 }
 
@@ -130,13 +130,13 @@ pokemon_t* pokemon_crear(char* nombre, size_t nivel, entrenador_t* entrenador){
     if(!pokemon)
         return NULL;
 
-    size_t tamanio = sizeof(char)*(strlen(nombre)+1);
+    size_t tamanio = strlen(nombre)+1;
     pokemon->nivel = nivel;
     pokemon->entrenador = entrenador;
     pokemon->nombre = malloc(tamanio);
     if(!pokemon->nombre)
         return NULL;
-    strncpy(pokemon->nombre, nombre, tamanio);
+    memcpy(pokemon->nombre, nombre, tamanio);
     return pokemon;
 }
 

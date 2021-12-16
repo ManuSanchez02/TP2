@@ -8,10 +8,16 @@ const size_t TAMANIO_INICIAL_HEAP = 6; //! Explicar constante
 const int RESULTADO_CORRECTO = 0;
 const int ID_DIFICULTAD_NO_ENCONTRADA = -1;
 
+const unsigned int PUNTAJE_MAXIMO_FACIL = 10;
+const unsigned int PUNTAJE_MAXIMO_NORMAL = 50;
+const unsigned int PUNTAJE_MAXIMO_DIFICIL = 200;
+
+const unsigned int MULTIPLICADOR_NORMAL = 2;
+
 struct _simulador_t{
     hospital_t* hospital;
     cola_t* entrenadores_en_espera;
-    heap_t* pokemon_atendidos;
+    heap_t* pokemon_atendidos;          // SACRIFICO TAMAÑO CON TAL DE OPTIMIZAR LOS TIEMPOS --> NO RECORRER LA LISTA DE HOSPITAL TODO EL TIEMPO
     pokemon_t* pokemon_en_tratamiento;
     lista_t* dificultades;
     DatosDificultad* dificultad_seleccionada; //! Explicar por que uso puntero en vez de id -> es mas simple el acceso (no hay que iterar la lista)
@@ -19,6 +25,7 @@ struct _simulador_t{
     unsigned puntos;
     unsigned cantidad_eventos_simulados;
     unsigned cantidad_pokemon_atendidos;
+    bool activo;
 };
 
 typedef struct datos_atender_pokemon_entrenador{
@@ -66,7 +73,6 @@ bool atender_pokemon_de_entrenador(void* pokemon_a_atender, void* _datos_aux){
     datos_atender_pokemon_entrenador_t* datos_aux = _datos_aux;
 
     if(pokemon_entrenador(pokemon_a_atender) == datos_aux->entrenador){
-        (*datos_aux->cantidad_pokemon_atendidos)++;
         return heap_insertar(datos_aux->pokemon_atendidos, pokemon_a_atender) != NULL;
     }
 
@@ -104,7 +110,21 @@ bool dificultad_no_existe(void* _dificultad, void* _datos_aux){
     return datos_aux->retorno;
 }
 
+int potencia(int base, unsigned int exponente){
+    int resultado = 1;
 
+    for(size_t i = 0; i < exponente; i++)
+        resultado *= base;
+
+    return resultado;
+}
+
+bool campos_validos(DatosDificultad* dificultad){
+    if(!dificultad)
+        return false;
+
+    return (dificultad->calcular_puntaje && dificultad->nombre && dificultad->verificacion_a_string && dificultad->verificar_nivel);
+}
 
 //-----------------------------------------------------//
 /*                FUNCIONES DE EVENTOS                 */
@@ -122,7 +142,7 @@ ResultadoSimulacion obtener_estadisticas(simulador_t* simulador, EstadisticasSim
     estadisticas->entrenadores_atendidos = estadisticas->entrenadores_totales - (unsigned) cola_tamanio(simulador->entrenadores_en_espera);
     estadisticas->pokemon_atendidos = simulador->cantidad_pokemon_atendidos;
     estadisticas->pokemon_totales = (unsigned) abb_tamanio(simulador->hospital->lista_pokemon);
-    estadisticas->pokemon_en_espera = estadisticas->pokemon_totales - estadisticas->pokemon_atendidos;
+    estadisticas->pokemon_en_espera = (unsigned) heap_tamanio(simulador->pokemon_atendidos);
     estadisticas->puntos = simulador->puntos;
     estadisticas->cantidad_eventos_simulados = simulador->cantidad_eventos_simulados;
 
@@ -190,6 +210,7 @@ ResultadoSimulacion adivinar_nivel_pokemon(simulador_t* simulador, Intento* inte
     
     intento->es_correcto = resultado_verificar_nivel == RESULTADO_CORRECTO;
     if(intento->es_correcto){
+        simulador->cantidad_pokemon_atendidos++;
         simulador->pokemon_en_tratamiento = heap_extraer_raiz(simulador->pokemon_atendidos);
         simulador->puntos += simulador->dificultad_seleccionada->calcular_puntaje((unsigned int) simulador->cantidad_intentos);
         simulador->cantidad_intentos = 0;
@@ -222,7 +243,7 @@ ResultadoSimulacion seleccionar_dificultad(simulador_t* simulador, int* id){
  *       Si no hay dificultad seleccionada, selecciona la agregada
  */
 ResultadoSimulacion agregar_dificultad(simulador_t* simulador, DatosDificultad* dificultad){
-    if(!simulador || !dificultad)
+    if(!simulador || !campos_validos(dificultad))
         return ErrorSimulacion;
 
     puntero_y_retorno_t datos_aux;
@@ -236,8 +257,7 @@ ResultadoSimulacion agregar_dificultad(simulador_t* simulador, DatosDificultad* 
         return ErrorSimulacion;
     }
 
-
-    dificultad_copia->nombre = dificultad->nombre;                  // ? Crear dificultad
+    dificultad_copia->nombre = dificultad->nombre;
     dificultad_copia->calcular_puntaje = dificultad->calcular_puntaje;
     dificultad_copia->verificacion_a_string = dificultad->verificacion_a_string;
     dificultad_copia->verificar_nivel = dificultad->verificar_nivel;
@@ -265,11 +285,21 @@ ResultadoSimulacion obtener_informacion_dificultad(simulador_t* simulador, Infor
         info_dificultad->nombre_dificultad = NULL;
         return ErrorSimulacion;
     }
-
+    
     info_dificultad->en_uso = simulador->dificultad_seleccionada == dificultad_buscada;
     info_dificultad->nombre_dificultad = dificultad_buscada->nombre;
 
     return ExitoSimulacion;
+}
+
+
+ResultadoSimulacion finalizar_simulacion(simulador_t* simulador){
+    if(!simulador)
+        return ErrorSimulacion;
+
+    simulador->activo = false;
+
+    return ExitoSimulacion; 
 }
 
 //-----------------------------------------------------//
@@ -280,18 +310,81 @@ int verificar_nivel(unsigned int nivel_adivinado, unsigned int nivel_pokemon){
     return (int)(nivel_adivinado - nivel_pokemon);
 }
 
-unsigned int puntaje_personalizado(const unsigned int intentos){
-    if(intentos > 10)
+unsigned int puntaje_facil(const unsigned int intentos){
+    if(intentos > PUNTAJE_MAXIMO_FACIL)
         return 0;
     
-    return 10-intentos;
+    return PUNTAJE_MAXIMO_FACIL-intentos;
 }
 
+unsigned int puntaje_normal(const unsigned int intentos){
+    if(intentos*MULTIPLICADOR_NORMAL > PUNTAJE_MAXIMO_NORMAL)
+        return 0;
+    
+    return PUNTAJE_MAXIMO_NORMAL-MULTIPLICADOR_NORMAL*intentos;
+}
+
+unsigned int puntaje_dificil(const unsigned int intentos){
+    return PUNTAJE_MAXIMO_DIFICIL/(unsigned int)potencia(2, intentos);
+}
+
+
 const char* verificacion_a_string_facil(int resultado_verificacion){
+    int distancia = abs(resultado_verificacion);
+    if(distancia == 0){
+        return "Acertaste el nivel del pokemon!";
+    }else if(distancia < 3){
+        return resultado_verificacion > 0 ? "Te sobran menos de 3 niveles!" : "Te faltan menos de 3 niveles!";
+    }else if(distancia < 5){
+        return resultado_verificacion > 0 ? "Te sobran menos de 5 niveles!" : "Te faltan menos de 5 niveles!";
+    }else if(distancia < 10){
+        return resultado_verificacion > 0 ? "Te sobran menos de 10 niveles" : "Te faltan menos de 10 niveles";
+    }else if(distancia < 25){
+        return resultado_verificacion > 0 ? "Te sobran menos de 25 niveles" : "Te faltan menos de 25 niveles";
+    }else if(distancia < 50){
+        return resultado_verificacion > 0 ? "Te sobran menos de 50 niveles" : "Te faltan menos de 50 niveles";
+    }else if(distancia < 80){
+        return resultado_verificacion > 0 ? "Te sobran menos de 80 niveles" : "Te faltan menos de 80 niveles";
+    }else{
+        return resultado_verificacion > 0 ? "Te sobran 80 niveles o mas :(" : "Te faltan 80 niveles o mas :(";
+    }
+}
+
+const char* verificacion_a_string_normal(int resultado_verificacion){
+    resultado_verificacion = abs(resultado_verificacion);
+    if(resultado_verificacion == 0){
+        return "Acertaste el nivel del pokemon!";
+    }else if(resultado_verificacion < 3){
+        return "Estas a menos de 3 niveles de distancia!";
+    }else if(resultado_verificacion < 5){
+        return "Estas a menos de 5 niveles de distancia!";
+    }else if(resultado_verificacion < 10){
+        return "Estas a menos de 10 niveles de distancia";
+    }else if(resultado_verificacion < 25){
+        return "Estas a menos de 25 niveles de distancia";
+    }else if(resultado_verificacion < 50){
+        return "Estas a menos de 50 niveles de distancia";
+    }else if(resultado_verificacion < 80){
+        return "Estas a menos de 80 niveles de distancia";
+    }else{
+        return "Estas a mas de 80 niveles de distancia";
+    }
+}
+
+const char* verificacion_a_string_dificil(int resultado_verificacion){
+    resultado_verificacion = abs(resultado_verificacion);
     if(resultado_verificacion == 0){
         return "Acertaste el nivel del pokemon!";
     }else if(resultado_verificacion < 5){
-        return ""; // SEGUIR ACA
+        return "Estas muy cerca!";
+    }else if(resultado_verificacion < 10){
+        return "Estas cerca";
+    }else if(resultado_verificacion < 25){
+        return "No estas ni lejos ni cerca";
+    }else if(resultado_verificacion < 50){
+        return "Estas lejos";
+    }else{
+        return "Ufff le pifiaste mal";
     }
 }
 
@@ -304,22 +397,22 @@ bool agregar_dificultades_iniciales(simulador_t* simulador){
     DatosDificultad dificil;
 
     facil.nombre = "Facil";
-    facil.calcular_puntaje = NULL;
+    facil.calcular_puntaje = puntaje_facil;
     facil.verificar_nivel = verificar_nivel;
-    facil.verificacion_a_string = NULL;
+    facil.verificacion_a_string = verificacion_a_string_facil;
     agregar_dificultad(simulador, &facil);
 
     normal.nombre = "Normal";
-    normal.calcular_puntaje = NULL;
+    normal.calcular_puntaje = puntaje_normal;
     normal.verificar_nivel = verificar_nivel;
-    normal.verificacion_a_string = NULL;
+    normal.verificacion_a_string = verificacion_a_string_normal;
     agregar_dificultad(simulador, &normal);
 
 
     dificil.nombre = "Dificil";
-    dificil.calcular_puntaje = NULL;
+    dificil.calcular_puntaje = puntaje_dificil;
     dificil.verificar_nivel = verificar_nivel; 
-    dificil.verificacion_a_string = NULL;
+    dificil.verificacion_a_string = verificacion_a_string_dificil;
     agregar_dificultad(simulador, &dificil);
 
 
@@ -369,12 +462,14 @@ simulador_t* simulador_crear(hospital_t* hospital){
         return NULL;
     }
 
+    simulador->activo = true;
+
     return simulador;
 }
 
 
 ResultadoSimulacion simulador_simular_evento(simulador_t* simulador, EventoSimulacion evento, void* datos){
-    if(!simulador)
+    if(!simulador || !simulador->activo)
         return ErrorSimulacion;
 
     ResultadoSimulacion resultado = ErrorSimulacion;
@@ -410,7 +505,7 @@ ResultadoSimulacion simulador_simular_evento(simulador_t* simulador, EventoSimul
             break;
 
         case FinalizarSimulacion:
-            resultado = finalizar_simulacion(simulador, datos);
+            resultado = finalizar_simulacion(simulador);
             break;
         
         default: 
