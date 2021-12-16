@@ -50,6 +50,7 @@ bool dificultad_destruir(void* _dificultad, void* aux){
 
     DatosDificultad* dificultad = _dificultad;
 
+    free((void*)dificultad->nombre);
     free(dificultad);
     return true;
 }
@@ -253,11 +254,17 @@ ResultadoSimulacion agregar_dificultad(simulador_t* simulador, DatosDificultad* 
     lista_con_cada_elemento(simulador->dificultades, dificultad_no_existe, &datos_aux);
     DatosDificultad* dificultad_copia = malloc(sizeof(DatosDificultad));
     if(!dificultad_copia ||  !datos_aux.retorno){
-        dificultad_destruir(dificultad_copia, NULL);
+        free(dificultad_copia);
         return ErrorSimulacion;
     }
 
-    dificultad_copia->nombre = dificultad->nombre;
+    size_t longitud = strlen(dificultad->nombre) + 1;
+    dificultad_copia->nombre = malloc(longitud);
+    if(!dificultad_copia->nombre){
+        dificultad_destruir(dificultad_copia, NULL);
+        return ErrorSimulacion;
+    }
+    memcpy((void*)dificultad_copia->nombre, dificultad->nombre, longitud);
     dificultad_copia->calcular_puntaje = dificultad->calcular_puntaje;
     dificultad_copia->verificacion_a_string = dificultad->verificacion_a_string;
     dificultad_copia->verificar_nivel = dificultad->verificar_nivel;
