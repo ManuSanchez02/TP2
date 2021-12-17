@@ -2,14 +2,6 @@
 #include <stddef.h>
 #include <stdlib.h>
 
-typedef struct datos_copiar_lista{
-    void* (*funcion_insercion)(void*, void*, void*);
-    void* estructura_donde_insertar;
-    void* extra;
-    bool retorno;
-} datos_copiar_lista_t;
-
-
 lista_t* lista_crear(){
     return calloc(1, sizeof(lista_t));
 }

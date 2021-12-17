@@ -1,7 +1,6 @@
 #include "hospital.h"
 #include "hospital_interno.h"
 
-
 const char SEPARADOR = ';';
 
 
@@ -75,6 +74,10 @@ size_t hospital_cantidad_entrenadores(hospital_t* hospital){
     return (hospital) ? lista_tamanio(hospital->lista_entrenadores) : 0;
 }
 
+/*
+ * Pre: _pokemon tiene que ser un puntero a un pokemon_t, y funcion un puntero a funcion que recibe un puntero a un pokemon_t y devuelve un bool.
+ * Post: Devuelve false en caso de error o el retorno de la funcion pasada por parametro en caso contrario.
+ */
 bool hospital_a_cada_pokemon_aux(void* _pokemon, void* _funcion){
     if(!_pokemon || !_funcion)
         return false;

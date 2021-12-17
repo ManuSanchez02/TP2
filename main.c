@@ -16,19 +16,74 @@
 #define BLANCO "\033[37m"
 #define GRIS "\033[90m"
 
-#define FONDO_VERDE "\033[42m"
-
-
 #define BOLD "\033[1m"
-
-
-
-
 
 typedef struct{
     bool jugando;
     simulador_t* simulador;
 }Juego;
+
+
+/*     FUNCIONES DIFICULTADES     */
+
+int verificar_nivel_nuevo(unsigned int nivel_adivinado, unsigned int nivel_pokemon){
+    return (int)(nivel_adivinado - nivel_pokemon);
+}
+
+unsigned int calcular_puntaje_imposible(unsigned int intentos){
+    if(intentos == 0)
+        return 1000;
+
+    if(intentos <= 100)
+        return 1000-10*(intentos-1);
+
+    return 0;
+}
+
+const char* verificacion_a_string_imposible(int resultado_verificacion){
+    if(resultado_verificacion == 0)
+        return "Si";
+    return "No";
+}
+
+unsigned int calcular_puntaje_espacio(unsigned int intentos){
+    if(intentos >= 5)
+        return 0;
+    return 100;
+}
+
+const char* verificacion_a_string_espacio(int resultado_verificacion){
+    int distancia = abs(resultado_verificacion);
+
+    if(distancia == 0)
+        return "Llegaste a la tierra!";
+    else if(distancia <= 10)
+        return "Estas en la atmosfera terrestre";
+    else if(distancia <= 25)
+        return "Estas pasando por la luna";
+    else if(distancia <= 50)
+        return "Estas entrando en el sistema solar";
+    else if(distancia <= 80)   
+        return "Estas entrando en la via lactea";
+    else
+        return "Estas explorando el universo";
+}
+
+/*       FUNCIONES JUEGO       */
+
+bool agregar_nueva_dificultad(simulador_t* simulador, const char* nombre, unsigned int (*calcular_puntaje)(unsigned int), int (*verificar_nivel)(unsigned int, unsigned int), const char *(verificacion_a_string)(int)){
+    if(!simulador || !nombre || !calcular_puntaje || !verificar_nivel || !verificacion_a_string){
+        return false;
+    }
+    
+    DatosDificultad dificultad;
+    dificultad.nombre = nombre;
+    dificultad.calcular_puntaje = calcular_puntaje;
+    dificultad.verificar_nivel = verificar_nivel;
+    dificultad.verificacion_a_string = verificacion_a_string;
+
+    return simulador_simular_evento(simulador, AgregarDificultad, &dificultad) == ExitoSimulacion;
+}
 
 bool inicializar_juego(Juego* juego, hospital_t* hospital){
     if(!juego || !hospital)
@@ -37,6 +92,9 @@ bool inicializar_juego(Juego* juego, hospital_t* hospital){
     juego->simulador = simulador_crear(hospital);
     if(!juego->simulador)
         return false;
+
+    agregar_nueva_dificultad(juego->simulador, "Imposible", calcular_puntaje_imposible, verificar_nivel_nuevo, verificacion_a_string_imposible);
+    agregar_nueva_dificultad(juego->simulador, "Espacial", calcular_puntaje_espacio, verificar_nivel_nuevo, verificacion_a_string_espacio);
 
     juego->jugando = true;
     return true;
@@ -113,7 +171,6 @@ void salir_juego(Juego* juego){
     juego->jugando = false;
 }
  
-
 void mostrar_pokemon_en_tratamiento(Juego* juego){
     if(!juego)
         return;

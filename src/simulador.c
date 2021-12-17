@@ -313,7 +313,7 @@ ResultadoSimulacion finalizar_simulacion(simulador_t* simulador){
 /*            FUNCIONES DE DIFICULTADES                */
 //-----------------------------------------------------//
 
-int verificar_nivel(unsigned int nivel_adivinado, unsigned int nivel_pokemon){
+int verificar_nivel_predeterminado(unsigned int nivel_adivinado, unsigned int nivel_pokemon){
     return (int)(nivel_adivinado - nivel_pokemon);
 }
 
@@ -405,20 +405,20 @@ bool agregar_dificultades_iniciales(simulador_t* simulador){
 
     facil.nombre = "Facil";
     facil.calcular_puntaje = puntaje_facil;
-    facil.verificar_nivel = verificar_nivel;
+    facil.verificar_nivel = verificar_nivel_predeterminado;
     facil.verificacion_a_string = verificacion_a_string_facil;
     agregar_dificultad(simulador, &facil);
 
     normal.nombre = "Normal";
     normal.calcular_puntaje = puntaje_normal;
-    normal.verificar_nivel = verificar_nivel;
+    normal.verificar_nivel = verificar_nivel_predeterminado;
     normal.verificacion_a_string = verificacion_a_string_normal;
     agregar_dificultad(simulador, &normal);
 
 
     dificil.nombre = "Dificil";
     dificil.calcular_puntaje = puntaje_dificil;
-    dificil.verificar_nivel = verificar_nivel; 
+    dificil.verificar_nivel = verificar_nivel_predeterminado; 
     dificil.verificacion_a_string = verificacion_a_string_dificil;
     agregar_dificultad(simulador, &dificil);
 

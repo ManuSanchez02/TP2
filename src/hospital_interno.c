@@ -7,7 +7,6 @@ const size_t MULTIPLICADOR_ALLOC = 10;
 #define POSICION_PRIMER_POKEMON 2
 
 
-
 char* leer_linea(FILE* archivo){
     size_t longitud = 0;
     size_t maximo = 1;
@@ -36,71 +35,6 @@ char* leer_linea(FILE* archivo){
     linea[longitud] = '\0';
 
     return linea;
-}
-
-bool ordenar_alfabeticamente(lista_t* pokemones, size_t tope){
-    if(!pokemones)
-        return false;
-    
-    bool error = false;
-
-    for(size_t i = 0; i < tope; i++){
-        for(size_t j = 0; j < tope-i-1; j++){
-            if(strcmp((*(pokemon_t*)lista_elemento_en_posicion(pokemones, j)).nombre, (*(pokemon_t*)lista_elemento_en_posicion(pokemones, j+1)).nombre) > 0){
-                pokemon_t* aux = lista_quitar_de_posicion(pokemones, j);
-                if(!lista_insertar_en_posicion(pokemones, aux, j+1))
-                    error = true;
-            }
-        }
-    }
-
-    return !error;
-}
-
-entrenador_t* agregar_entrenador(entrenador_t* vector, entrenador_t elemento, size_t* cantidad_elementos, size_t* cantidad_maxima){   
-    if(!vector){
-        vector = malloc(sizeof(entrenador_t));
-        if(!vector)
-            return NULL;
-        
-        *cantidad_maxima = 1;
-    }
-
-    if((*cantidad_elementos) == (*cantidad_maxima)){
-        void* vector_aux = realloc(vector, sizeof(entrenador_t)*(*cantidad_maxima)*2);
-        if(!vector_aux)
-            return NULL;
-
-        *cantidad_maxima *= 2;
-        vector = vector_aux;
-    }
-    
-    vector[*cantidad_elementos] = elemento;
-    (*cantidad_elementos)++;
-    return vector;
-}
-
-pokemon_t* agregar_pokemon(pokemon_t* vector, pokemon_t elemento, size_t* cantidad_elementos, size_t* cantidad_maxima){  
-    if(!vector){
-        vector = malloc(sizeof(pokemon_t));
-        if(!vector)
-            return NULL;
-        
-        *cantidad_maxima = 1;
-    }
-
-    if((*cantidad_elementos) == (*cantidad_maxima)){
-        void* vector_aux = realloc(vector, sizeof(pokemon_t)*(*cantidad_maxima)*2);
-        if(!vector_aux)
-            return NULL;
-
-        *cantidad_maxima *= 2;
-        vector = vector_aux;
-    }
-    
-    vector[*cantidad_elementos] = elemento;
-    (*cantidad_elementos)++;
-    return vector;
 }
 
 entrenador_t* entrenador_crear(char* nombre, int id){
@@ -172,7 +106,7 @@ bool parsear_linea(hospital_t* hospital, char** elementos_linea){
 }
 
 /*
- * Pre:
+ * Pre: -
  * Post: inserta elemento en lista y devuelve true si fue exitoso y false en caso contrario
  */
 bool hospital_copiar_entrenadores_aux(void* elemento, void* lista){
@@ -183,7 +117,7 @@ bool hospital_copiar_entrenadores_aux(void* elemento, void* lista){
 }
 
 /*
- * Pre:
+ * Pre: -
  * Post: inserta elemento en abb y devuelve true si fue exitoso y false en caso contrario
  */
 bool hospital_copiar_pokemon_aux(void* elemento, void* abb){

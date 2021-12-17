@@ -35,26 +35,6 @@ struct _pkm_t{
 char* leer_linea(FILE* archivo);
 
 /*
- * Pre: el tope del vector debe estar inicializado y estar acorde al vector.
- * Post: si el vector no esta inicializado, no pasa nada. Si lo esta, lo ordena alfabeticamente 
- */
-bool ordenar_alfabeticamente(lista_t* lista_pokemon, size_t tope);
-
-/*
- * Pre: la cantidad_elementos debe estar inicializado y estar acorde al vector.
- * Post: Si el vector es NULL, crea un vector de tamaño sizeof(entrenador_t), le agrega elemento y aumenta cantidad_elementos.
- *       Si ya estaba creado, agrega elemento en la ultima posicion y aumenta la cantidad_elementos.
- */
-entrenador_t* agregar_entrenador(entrenador_t* vector, entrenador_t elemento, size_t* cantidad_elementos, size_t* cantidad_maxima);
-
-/*
- * Pre: la cantidad_elementos debe estar inicializado y estar acorde al vector.
- * Post: Si el vector es NULL, crea un vector de tamaño sizeof(pokemon_t), le agrega elemento y aumenta cantidad_elementos.
- *       Si ya estaba creado, agrega elemento en la ultima posicion y aumenta la cantidad_elementos.
- */
-pokemon_t* agregar_pokemon(pokemon_t* vector, pokemon_t elemento, size_t* cantidad_elementos, size_t* cantidad_maxima);
-
-/*
  * Pre: nombre debe ser distinto de NULL
  * Post: Devuelve un puntero a entrenador si se pudo crear al entrenador y NULL en caso contrario
  */
@@ -94,8 +74,8 @@ void pokemon_destruir(void* _pokemon);
 bool entrenador_destruir(void* _entrenador, void* aux);
 
 /*
- * Pre: 
- * Post: Libera la memoria asignada a la lista y arbol del hospital (no de los elementos)
+ * Pre: -
+ * Post: Libera la memoria asignada a la lista y arbol del hospital (no de los entrenadores y pokemon)
  */
 void hospital_destruir_estructuras(hospital_t* hospital);
 
