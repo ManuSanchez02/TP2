@@ -28,11 +28,7 @@ struct _simulador_t{
     bool activo;
 };
 
-typedef struct datos_atender_pokemon_entrenador{
-    heap_t* pokemon_atendidos;
-    entrenador_t* entrenador;
-    unsigned* cantidad_pokemon_atendidos;
-}datos_atender_pokemon_entrenador_t;
+
 
 typedef struct puntero_y_retorno{ //! EXPLICAR XQ ESTO -> Es la unica forma de saber si se encontro o no
     void* puntero;
@@ -64,21 +60,16 @@ int comparador_pokemon(void* pokemon1, void* pokemon2){ // ! Explicar comparacio
 
 
 /*
- * Pre: pokemon_a_atender debe ser un puntero a pokemon y datos aux debe ser un puntero a un datos_atender_pokemon_entrenador_t inicializado con los datos correspondientes
- * Post: Devuelve false si hubo un error a la hora de insertar y true en caso contrario. Inserta el pokemon a atender en el heap de datos_aux->pokemon_atendidos
+ * Pre: pokemon_a_atender debe ser un puntero a pokemon y _heap_pokemon debe ser un puntero a un heap de pokemon del simulador
+ * Post: Devuelve false si hubo un error a la hora de insertar y true en caso contrario. Inserta el pokemon a atender en el heap de pokemon
  */
-bool atender_pokemon_de_entrenador(void* pokemon_a_atender, void* _datos_aux){
-    if(!pokemon_a_atender || !_datos_aux)
+bool atender_pokemon_de_entrenador(void* pokemon_a_atender, void* _heap_pokemon){
+    if(!pokemon_a_atender || !_heap_pokemon)
         return false;
 
-    datos_atender_pokemon_entrenador_t* datos_aux = _datos_aux;
-
-    if(pokemon_entrenador(pokemon_a_atender) == datos_aux->entrenador){
-        return heap_insertar(datos_aux->pokemon_atendidos, pokemon_a_atender) != NULL;
-    }
-
-
-    return true;
+    heap_t* heap_pokemon = _heap_pokemon;
+    
+    return heap_insertar(heap_pokemon, pokemon_a_atender) != NULL;    
 }
 
 /*
@@ -162,13 +153,11 @@ ResultadoSimulacion atender_proximo_entrenador(simulador_t* simulador){
 
     entrenador_t* entrenador_atendido = cola_desencolar(simulador->entrenadores_en_espera);
 
-    datos_atender_pokemon_entrenador_t datos_aux;
-    datos_aux.entrenador = entrenador_atendido;
-    datos_aux.pokemon_atendidos = simulador->pokemon_atendidos;
-    datos_aux.cantidad_pokemon_atendidos = &(simulador->cantidad_pokemon_atendidos);
 
-    
-    if(abb_con_cada_elemento(simulador->hospital->lista_pokemon, INORDEN, atender_pokemon_de_entrenador, &datos_aux) != abb_tamanio(simulador->hospital->lista_pokemon))
+    bool exito_al_atender = true;
+    lista_con_cada_elemento(entrenador_atendido->pokemon_de_entrenador, atender_pokemon_de_entrenador, simulador->pokemon_atendidos);
+
+    if(!exito_al_atender)
         return ErrorSimulacion;
     
     if(!simulador->pokemon_en_tratamiento)

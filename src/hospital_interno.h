@@ -13,6 +13,7 @@
 struct _entrenador_t{
     char* nombre;
     int id;
+    lista_t* pokemon_de_entrenador;
 };
 
 struct _hospital_pkm_t{
