@@ -7,6 +7,7 @@
 #include <ctype.h>
 #include "src/split.h"
 
+
 #define RESET "\033[0m"
 
 #define NEGRO "\033[30m"
@@ -18,18 +19,37 @@
 
 #define BOLD "\033[1m"
 
+#define TECLA_MOSTRAR_ESTADISTICAS 'e'
+#define TECLA_ATENDER_ENTERNADOR 'p'
+#define TECLA_MOSTRAR_POKEMON 'i'
+#define TECLA_TRATAR_POKEMON 'a'
+#define TECLA_VER_DIFICULTADES 'o'
+#define TECLA_CAMBIAR_DIFICULTAD 'd'
+#define TECLA_LIMPIAR_PANTALLA 'c'
+#define TECLA_MOSTRAR_AYUDA 'h'
+#define TECLA_SALIR 'q'
+
 typedef struct{
     bool jugando;
     simulador_t* simulador;
 }Juego;
 
+//--------------------------------//
+//     FUNCIONES DIFICULTADES     //
+//--------------------------------//
 
-/*     FUNCIONES DIFICULTADES     */
-
+/*
+ * Pre: 
+ * Post: devuelve un la diferencia entre el nivel_adivinado y el nivel_pokemon
+ */
 int verificar_nivel_nuevo(unsigned int nivel_adivinado, unsigned int nivel_pokemon){
     return (int)(nivel_adivinado - nivel_pokemon);
 }
 
+/*
+ * Pre: 
+ * Post: devuelve el puntaje respectivo a la dificultad imposible
+ */
 unsigned int calcular_puntaje_imposible(unsigned int intentos){
     if(intentos == 0)
         return 1000;
@@ -40,18 +60,30 @@ unsigned int calcular_puntaje_imposible(unsigned int intentos){
     return 0;
 }
 
+/*
+ * Pre: resultado_verificacion debe ser el valor de retorno de verificar_nivel_nuevo
+ * Post: devuelve el string resultado respectivo de la dificultad imposible
+ */
 const char* verificacion_a_string_imposible(int resultado_verificacion){
     if(resultado_verificacion == 0)
-        return "Si";
+        return "Correcto!";
     return "No";
 }
 
+/*
+ * Pre: 
+ * Post: devuelve el puntaje respectivo a la dificultad espacio
+ */
 unsigned int calcular_puntaje_espacio(unsigned int intentos){
     if(intentos >= 5)
         return 0;
     return 100;
 }
 
+/*
+ * Pre: resultado_verificacion debe ser el valor de retorno de verificar_nivel_nuevo
+ * Post: devuelve el string resultado respectivo de la dificultad espacio
+ */
 const char* verificacion_a_string_espacio(int resultado_verificacion){
     int distancia = abs(resultado_verificacion);
 
@@ -69,8 +101,14 @@ const char* verificacion_a_string_espacio(int resultado_verificacion){
         return "Estas explorando el universo";
 }
 
-/*       FUNCIONES JUEGO       */
+//-----------------------------//
+//       FUNCIONES JUEGO       //
+//-----------------------------//
 
+/*
+ * Pre: -
+ * Post: crea una dificultad dados los parametros y la agrega al simulador
+ */
 bool agregar_nueva_dificultad(simulador_t* simulador, const char* nombre, unsigned int (*calcular_puntaje)(unsigned int), int (*verificar_nivel)(unsigned int, unsigned int), const char *(verificacion_a_string)(int)){
     if(!simulador || !nombre || !calcular_puntaje || !verificar_nivel || !verificacion_a_string){
         return false;
@@ -85,6 +123,11 @@ bool agregar_nueva_dificultad(simulador_t* simulador, const char* nombre, unsign
     return simulador_simular_evento(simulador, AgregarDificultad, &dificultad) == ExitoSimulacion;
 }
 
+/*
+ * Pre: -
+ * Post: inicializa el juego reservando memoria para todas sus estructuras y agregando las dificultades nuevas.
+ *       Devuelve true si se pudo inicializar el juego, false en caso contrario. Si falla, libera la memoria reservada.
+ */
 bool inicializar_juego(Juego* juego, hospital_t* hospital){
     if(!juego || !hospital)
         return false;
@@ -93,17 +136,27 @@ bool inicializar_juego(Juego* juego, hospital_t* hospital){
     if(!juego->simulador)
         return false;
 
-    agregar_nueva_dificultad(juego->simulador, "Imposible", calcular_puntaje_imposible, verificar_nivel_nuevo, verificacion_a_string_imposible);
-    agregar_nueva_dificultad(juego->simulador, "Espacial", calcular_puntaje_espacio, verificar_nivel_nuevo, verificacion_a_string_espacio);
+    if(!agregar_nueva_dificultad(juego->simulador, "Imposible", calcular_puntaje_imposible, verificar_nivel_nuevo, verificacion_a_string_imposible) || !agregar_nueva_dificultad(juego->simulador, "Espacial", calcular_puntaje_espacio, verificar_nivel_nuevo, verificacion_a_string_espacio)){
+        simulador_destruir(juego->simulador);
+        return false;
+    }
 
     juego->jugando = true;
     return true;
 }
 
+/*
+ * Pre: -
+ * Post: libera la memoria reservada para el juego
+ */
 void destruir_juego(Juego juego){
     simulador_destruir(juego.simulador);
 }
 
+/*
+ * Pre: -
+ * Post: lee el comando ingresado por el usuario y lo devuelve en minusculas
+ */
 char leer_comando(){
     char linea[100];
     char* leido;
@@ -115,6 +168,10 @@ char leer_comando(){
     return (char)tolower(*leido);
 }
 
+/*
+ * Pre: -
+ * Post: lee el primer numero ingresado por el usuario y lo devuelve. Si no se ingreso ningun numero, devuelve -1.
+ */
 int leer_numero(){
     char linea[100];
     char* leido;
@@ -147,6 +204,10 @@ int leer_numero(){
     return -1;
 }
 
+/*
+ * Pre: -
+ * Post: imprime por pantalla las estadisticas del juego
+ */
 void mostrar_estadisticas(Juego* juego){
     if(!juego)
         return;
@@ -164,6 +225,10 @@ void mostrar_estadisticas(Juego* juego){
     printf(BOLD "\tPuntaje actual:\t\t\t\t" RESET  "%u\n" , estadisticas.puntos);
 }
 
+/*
+ * Pre: -
+ * Post: finaliza la simulacion y termina el juego
+ */
 void salir_juego(Juego* juego){
     if(!juego)
         return;
@@ -171,6 +236,10 @@ void salir_juego(Juego* juego){
     juego->jugando = false;
 }
  
+/*
+* Pre: -
+* Post: imprime por pantalla el pokemon en tratamiento
+*/
 void mostrar_pokemon_en_tratamiento(Juego* juego){
     if(!juego)
         return;
@@ -185,6 +254,26 @@ void mostrar_pokemon_en_tratamiento(Juego* juego){
     }
 }
 
+/*
+* Pre: -
+* Post: atiende al proximo entrenador e imprime por pantalla si se pudo atender o no.
+*/
+void atender_entrenador(Juego* juego){
+    if(!juego)
+        return;
+
+    if(simulador_simular_evento(juego->simulador, AtenderProximoEntrenador, NULL) == ExitoSimulacion){
+        printf(GRIS "Atendiendo al proximo entrenador...\n" RESET);
+    }else{
+        printf(ROJO "No hay entrenadores en espera\n" RESET);
+    }
+}
+
+/*
+* Pre: -
+* Post: pide al usuario que ingrese el nivel del pokemon, y lo compara con el nivel del pokemon en tratamiento. Si acierta, se pone en
+*       tratamiento al siguiente pokemon y se añaden los puntos correspondientes. Tambien imprime por pantalla el string resultado de la dificultad seleccionada
+*/
 void tratar_pokemon(Juego* juego){
     if(!juego)
         return;
@@ -204,7 +293,6 @@ void tratar_pokemon(Juego* juego){
     intento.nivel_adivinado = (unsigned) numero_ingresado;
     printf("\n");
 
-
     simulador_simular_evento(juego->simulador, AdivinarNivelPokemon, &intento);
 
     if(intento.es_correcto)
@@ -213,6 +301,10 @@ void tratar_pokemon(Juego* juego){
         printf(ROJO "%s\n" RESET, intento.resultado_string);
 }
 
+/*
+* Pre: -
+* Post: imprime por pantalla las dificultades
+*/
 void ver_dificultades(Juego* juego){
     if(!juego)
         return;
@@ -234,6 +326,10 @@ void ver_dificultades(Juego* juego){
     }
 }
 
+/*
+* Pre: -
+* Post: imprime por pantalla las dificultades y pide al usuario que ingrese el id de una dificultad valida. Si lo ingresa, se cambia la dificultad a esta
+*/
 void cambiar_dificultad(Juego* juego){
     if(!juego)
         return;
@@ -248,43 +344,71 @@ void cambiar_dificultad(Juego* juego){
     ver_dificultades(juego);
 }
 
+/*
+* Pre: -
+* Post: imprime por pantalla los comandos disponibles
+*/
+void mostrar_comandos(){
+    printf(VERDE "Los comandos disponibles son:\n" RESET);
+    printf(BOLD "\t'%c'\t" RESET "Mostrar estadisticas\n", TECLA_MOSTRAR_ESTADISTICAS);
+    printf(BOLD "\t'%c'\t" RESET "Atender al proximo entrenador\n", TECLA_ATENDER_ENTERNADOR);
+    printf(BOLD "\t'%c'\t" RESET "Mostrar pokemon en tratamiento\n", TECLA_MOSTRAR_POKEMON);
+    printf(BOLD "\t'%c'\t" RESET "Tratar pokemon\n", TECLA_TRATAR_POKEMON);
+    printf(BOLD "\t'%c'\t" RESET "Ver dificultades\n", TECLA_VER_DIFICULTADES);
+    printf(BOLD "\t'%c'\t" RESET "Cambiar dificultad\n", TECLA_CAMBIAR_DIFICULTAD);
+    printf(BOLD "\t'%c'\t" RESET "Limpiar la pantalla\n", TECLA_LIMPIAR_PANTALLA);
+    printf(BOLD "\t'%c'\t" RESET "Mostrar esta pantalla\n", TECLA_MOSTRAR_AYUDA);
+    printf(BOLD "\t'%c'\t" RESET "Salir del juego\n", TECLA_SALIR);
+}
+
+/*
+* Pre: -
+* Post: ejecuta un comando segun la tecla ingresada
+*/
 void ejecutar_comando(Juego *juego, char comando){
     switch (comando) {
-        case 'q':
+        case TECLA_SALIR:
             salir_juego(juego);
             break;
-        case 'e':
+        case TECLA_MOSTRAR_ESTADISTICAS:
             mostrar_estadisticas(juego);
             break;
-        case 'p':
-            simulador_simular_evento(juego->simulador, AtenderProximoEntrenador, NULL);
-            printf(GRIS "Atendiendo al proximo entrenador...\n" RESET);
+        case TECLA_ATENDER_ENTERNADOR:
+            atender_entrenador(juego);
             break;
-        case 'i':
+        case TECLA_MOSTRAR_POKEMON:
             mostrar_pokemon_en_tratamiento(juego);
             break;
-        case 'a':
+        case TECLA_TRATAR_POKEMON:
             tratar_pokemon(juego);
             break;
-        case 'o':
+        case TECLA_VER_DIFICULTADES:
             ver_dificultades(juego);
             break;
-        case 'd':
+        case TECLA_CAMBIAR_DIFICULTAD:
             cambiar_dificultad(juego);
             break;
+        case TECLA_LIMPIAR_PANTALLA:
+            system("clear");
+            break;
+        case TECLA_MOSTRAR_AYUDA:
+            mostrar_comandos();
+            break;
         default: 
-            break;;
+            break;
     } 
 }
 
 int main(int argc, char *argv[]) {
-
+    system("clear");
     hospital_t* hospital = hospital_crear();
     hospital_leer_archivo(hospital, "ejemplos/varios_entrenadores.hospital");
 
     Juego juego;
     if(!inicializar_juego(&juego, hospital))
         return -1;
+
+    printf("Escribi un comando o '%c' para ver los comandos disponibles:\n", TECLA_MOSTRAR_AYUDA);
 
     do{
         printf(AMARILLO "> " RESET);

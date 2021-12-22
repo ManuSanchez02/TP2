@@ -4,7 +4,7 @@
 #include "cola.h"
 #include <string.h>
 
-const size_t TAMANIO_INICIAL_HEAP = 6; //! Explicar constante
+const size_t TAMANIO_INICIAL_HEAP = 6;
 const int RESULTADO_CORRECTO = 0;
 const int ID_DIFICULTAD_NO_ENCONTRADA = -1;
 
@@ -28,18 +28,19 @@ struct _simulador_t{
     bool activo;
 };
 
-
-
-typedef struct puntero_y_retorno{ //! EXPLICAR XQ ESTO -> Es la unica forma de saber si se encontro o no
+typedef struct puntero_y_retorno{
     void* puntero;
     bool retorno;
 } puntero_y_retorno_t;
 
 //-----------------------------------------------------//
-/*                FUNCIONES AUXILIARES                 */
+//                FUNCIONES AUXILIARES                 //
 //-----------------------------------------------------//
 
-
+/*
+ * Pre: _dificultad debe ser un puntero a DatosDificultad
+ * Post: libera la memoria asignada a la dificultad apuntada por el puntero
+ */
 bool dificultad_destruir(void* _dificultad, void* aux){
     if(!_dificultad)
         return false;
@@ -51,7 +52,11 @@ bool dificultad_destruir(void* _dificultad, void* aux){
     return true;
 }
 
-int comparador_pokemon(void* pokemon1, void* pokemon2){ // ! Explicar comparacion
+/*
+ * Pre: pokemon1 y pokemon2 deben ser punteros a pokemon
+ * Post: devuelve un numero mayor a 0 si el nivel de pokemon1 es mayor al de pokemon2, menor a 0 si el nivel de pokemon1 es menor al de pokemon2 y 0 si son iguales
+ */
+int comparador_nivel_pokemon(void* pokemon1, void* pokemon2){
     if(!pokemon1 || !pokemon2)
         return 0;
 
@@ -102,6 +107,10 @@ bool dificultad_no_existe(void* _dificultad, void* _datos_aux){
     return datos_aux->retorno;
 }
 
+/*
+ * Pre: -
+ * Post: devuelve base^exponente
+ */
 int potencia(int base, unsigned int exponente){
     int resultado = 1;
 
@@ -111,6 +120,10 @@ int potencia(int base, unsigned int exponente){
     return resultado;
 }
 
+/*
+ * Pre: 
+ * Post: Devuelve true si los campos de la dificultad son validos y false en caso contrario
+ */
 bool campos_validos(DatosDificultad* dificultad){
     if(!dificultad)
         return false;
@@ -119,7 +132,7 @@ bool campos_validos(DatosDificultad* dificultad){
 }
 
 //-----------------------------------------------------//
-/*                FUNCIONES DE EVENTOS                 */
+//                FUNCIONES DE EVENTOS                 //
 //-----------------------------------------------------//
 
 /*
@@ -269,7 +282,11 @@ ResultadoSimulacion agregar_dificultad(simulador_t* simulador, DatosDificultad* 
     return ExitoSimulacion;
 }
 
-
+/*
+ * Pre: -
+ * Post: Carga la informacion de la dificultad seleccionada en la estructura info_dificultad. 
+ *       Devuelve ExitoSimulacion si tuvo exito y ErrorSimulacion en caso contrario
+ */
 ResultadoSimulacion obtener_informacion_dificultad(simulador_t* simulador, InformacionDificultad* info_dificultad){
     if(!simulador || !info_dificultad)
         return ErrorSimulacion;
@@ -288,7 +305,10 @@ ResultadoSimulacion obtener_informacion_dificultad(simulador_t* simulador, Infor
     return ExitoSimulacion;
 }
 
-
+/*
+ * Pre: -
+ * Post: termina la simulacion haciendo que no se puedan simular mas eventos. Devuelve ExitoSimulacion si tuvo exito y ErrorSimulacion en caso contrario
+ */
 ResultadoSimulacion finalizar_simulacion(simulador_t* simulador){
     if(!simulador)
         return ErrorSimulacion;
@@ -299,13 +319,21 @@ ResultadoSimulacion finalizar_simulacion(simulador_t* simulador){
 }
 
 //-----------------------------------------------------//
-/*            FUNCIONES DE DIFICULTADES                */
+//            FUNCIONES DE DIFICULTADES                //
 //-----------------------------------------------------//
 
+/*
+ * Pre: -
+ * Post: devuelve la diferencia entre nivel_adivinado y nivel_pokemon.
+ */
 int verificar_nivel_predeterminado(unsigned int nivel_adivinado, unsigned int nivel_pokemon){
     return (int)(nivel_adivinado - nivel_pokemon);
 }
 
+/*
+ * Pre: -
+ * Post: devuelve el puntaje correspondiente a la dificultad facil
+ */
 unsigned int puntaje_facil(const unsigned int intentos){
     if(intentos > PUNTAJE_MAXIMO_FACIL)
         return 0;
@@ -313,6 +341,10 @@ unsigned int puntaje_facil(const unsigned int intentos){
     return PUNTAJE_MAXIMO_FACIL-intentos;
 }
 
+/*
+ * Pre: -
+ * Post: devuelve el puntaje correspondiente a la dificultad normal
+ */
 unsigned int puntaje_normal(const unsigned int intentos){
     if(intentos*MULTIPLICADOR_NORMAL > PUNTAJE_MAXIMO_NORMAL)
         return 0;
@@ -320,11 +352,18 @@ unsigned int puntaje_normal(const unsigned int intentos){
     return PUNTAJE_MAXIMO_NORMAL-MULTIPLICADOR_NORMAL*intentos;
 }
 
+/*
+ * Pre: -
+ * Post: devuelve el puntaje correspondiente a la dificultad dificil
+ */
 unsigned int puntaje_dificil(const unsigned int intentos){
     return PUNTAJE_MAXIMO_DIFICIL/(unsigned int)potencia(2, intentos);
 }
 
-
+/*
+ * Pre: resultado_verificacion debe ser el valor que devuelve verificar_nivel_predeterminado
+ * Post: devuelve un string de resultado correspondiente a la dificultad facil
+ */
 const char* verificacion_a_string_facil(int resultado_verificacion){
     int distancia = abs(resultado_verificacion);
     if(distancia == 0){
@@ -346,6 +385,10 @@ const char* verificacion_a_string_facil(int resultado_verificacion){
     }
 }
 
+/*
+ * Pre: resultado_verificacion debe ser el valor que devuelve verificar_nivel_predeterminado
+ * Post: devuelve un string de resultado correspondiente a la dificultad normal
+ */
 const char* verificacion_a_string_normal(int resultado_verificacion){
     resultado_verificacion = abs(resultado_verificacion);
     if(resultado_verificacion == 0){
@@ -367,6 +410,10 @@ const char* verificacion_a_string_normal(int resultado_verificacion){
     }
 }
 
+/*
+ * Pre: resultado_verificacion debe ser el valor que devuelve verificar_nivel_predeterminado
+ * Post: devuelve un string de resultado correspondiente a la dificultad dificil
+ */
 const char* verificacion_a_string_dificil(int resultado_verificacion){
     resultado_verificacion = abs(resultado_verificacion);
     if(resultado_verificacion == 0){
@@ -384,6 +431,10 @@ const char* verificacion_a_string_dificil(int resultado_verificacion){
     }
 }
 
+/*
+ * Pre: -
+ * Post: carga en la lista de dificultades, las dificultades facil, normal y dificil. Si falla devuelve false, y sino true
+ */
 bool agregar_dificultades_iniciales(simulador_t* simulador){
     if(!simulador)
         return false;
@@ -431,7 +482,7 @@ simulador_t* simulador_crear(hospital_t* hospital){
    
     simulador->hospital = hospital;
     simulador->entrenadores_en_espera = cola_crear();
-    simulador->pokemon_atendidos = heap_crear(TAMANIO_INICIAL_HEAP, comparador_pokemon);
+    simulador->pokemon_atendidos = heap_crear(TAMANIO_INICIAL_HEAP, comparador_nivel_pokemon);
     simulador->dificultades = lista_crear();
     if(!simulador->entrenadores_en_espera || !simulador->pokemon_atendidos || !simulador->dificultades){
         heap_destruir(simulador->pokemon_atendidos);
